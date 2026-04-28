@@ -1,0 +1,195 @@
+/* ===== HERO FOOD CARDS ===== */
+.hf-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 52%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Decorative rings */
+.hf-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 107, 0, 0.12);
+}
+.hf-ring-2 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 107, 0, 0.07);
+}
+
+/* Center glow */
+.hf-center-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 107, 0, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Orbit dots */
+.hf-orbit-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 107, 0, 0.4);
+  box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
+}
+
+/* Food Cards */
+.hf-card {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.hf-card-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 20px;
+  opacity: 0.2;
+  filter: blur(16px);
+  z-index: 0;
+  transition: opacity 0.3s;
+}
+
+.hf-card:hover .hf-card-glow {
+  opacity: 0.5;
+}
+
+.hf-card-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: rgba(15, 15, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 0.75rem 1rem;
+  min-width: 160px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.hf-card:hover .hf-card-inner {
+  transform: scale(1.06);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(255, 107, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 107, 0, 0.35);
+}
+
+.hf-card-emoji {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+}
+
+.hf-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hf-card-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  white-space: nowrap;
+}
+
+.hf-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hf-card-price {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--card-color, #ff6b00);
+  font-family: "Poppins", sans-serif;
+}
+
+.hf-card-rating {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: "Poppins", sans-serif;
+}
+
+/* Mini Badges */
+.hf-badge {
+  position: absolute;
+  background: rgba(15, 15, 15, 0.9);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  color: #ff6b00;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: "Poppins", sans-serif;
+  padding: 0.35rem 0.8rem;
+  border-radius: 99px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: badgeFloat 3s ease-in-out infinite;
+  z-index: 3;
+}
+
+.hf-badge-1 {
+  top: 28%;
+  right: 5%;
+  animation-delay: 0s;
+}
+.hf-badge-2 {
+  top: 55%;
+  right: 38%;
+  animation-delay: 1s;
+}
+.hf-badge-3 {
+  top: 80%;
+  right: 10%;
+  animation-delay: 2s;
+}
+
+@keyframes badgeFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hf-container { width: 48%; }
+  .hf-card-inner { min-width: 140px; padding: 0.6rem 0.8rem; }
+  .hf-card-emoji { font-size: 1.6rem; }
+}
+
+@media (max-width: 768px) {
+  .hf-container { display: none; }
+}
