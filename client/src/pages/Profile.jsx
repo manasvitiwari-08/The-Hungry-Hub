@@ -1,207 +1,244 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import * as THREE from "three";
 import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import "../styles/profile.css";
 
-export default function Profile() {
-  const pageRef = useRef(null);
+// ── Three.js background ──────────────────────────────────────
+function ProfileBg() {
+  const mountRef = useRef(null);
+  useEffect(() => {
+    const mount = mountRef.current;
+    const w = mount.clientWidth, h = mount.clientHeight;
+    const scene    = new THREE.Scene();
+    const camera   = new THREE.PerspectiveCamera(60, w / h, 0.1, 100);
+    camera.position.z = 5;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    mount.appendChild(renderer.domElement);
 
-  const [user, setUser] = useState({
-    name: "", email: "", phone: "", address: "", avatar: "",
-  });
+    // Particles
+    const count = 80;
+    const geo   = new THREE.BufferGeometry();
+    const pos   = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      pos[i*3]   = (Math.random()-0.5)*14;
+      pos[i*3+1] = (Math.random()-0.5)*10;
+      pos[i*3+2] = (Math.random()-0.5)*6;
+    }
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ color: 0xff6b00, size: 0.05, transparent: true, opacity: 0.4 });
+    const particles = new THREE.Points(geo, mat);
+    scene.add(particles);
+
+    // Torus
+    const torus = new THREE.Mesh(
+      new THREE.TorusGeometry(3, 0.012, 8, 80),
+      new THREE.MeshBasicMaterial({ color: 0xff6b00, transparent: true, opacity: 0.08 })
+    );
+    torus.rotation.x = Math.PI / 4;
+    scene.add(torus);
+
+    const onResize = () => {
+      const nw = mount.clientWidth, nh = mount.clientHeight;
+      camera.aspect = nw / nh; camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh);
+    };
+    window.addEventListener("resize", onResize);
+
+    let id;
+    const clock = new THREE.Clock();
+    const animate = () => {
+      id = requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      particles.rotation.y = t * 0.03;
+      torus.rotation.z     = t * 0.1;
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    return () => {
+      cancelAnimationFrame(id);
+      window.removeEventListener("resize", onResize);
+      renderer.dispose();
+      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
+    };
+  }, []);
+  return <div ref={mountRef} className="p-bg-canvas" />;
+}
+
+// ── Main Component ───────────────────────────────────────────
+export default function Profile() {
+  const [user, setUser]       = useState({ name: "", email: "", phone: "", address: "" });
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm]       = useState({});
+  const [tab, setTab]         = useState("info");
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("user");
-      if (stored) {
-        const u = JSON.parse(stored);
-        setUser(u);
-        setForm(u);
-      }
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      setUser(u); setForm(u);
     } catch {}
   }, []);
 
   useGSAP(() => {
-    gsap.fromTo(".profile-hero",
-      { opacity: 0, y: -30 },
-      { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", delay: 0.2 }
-    );
-    gsap.fromTo(".profile-card",
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power3.out", delay: 0.4 }
-    );
+    const tl = gsap.timeline({ delay: 0.2 });
+    tl.fromTo(".p-avatar",  { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.7)" })
+      .fromTo(".p-name",    { opacity: 0, x: -20 },   { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, "-=0.3")
+      .fromTo(".p-tags",    { opacity: 0, y: 10 },     { opacity: 1, y: 0, duration: 0.4 }, "-=0.2")
+      .fromTo(".p-stat",    { opacity: 0, y: 16 },     { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: "back.out(1.4)" }, "-=0.1")
+      .fromTo(".p-content", { opacity: 0, y: 20 },     { opacity: 1, y: 0, duration: 0.5 }, "-=0.1");
   }, []);
 
-  const getInitials = (name) => {
-    if (!name) return "U";
-    return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
-  };
+  const initials = (n) => n ? n.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2) : "U";
 
-  const handleSave = async () => {
+  const save = async () => {
     setLoading(true);
-    try {
-      // Update localStorage
-      const updated = { ...user, ...form };
-      localStorage.setItem("user", JSON.stringify(updated));
-      setUser(updated);
-      setEditing(false);
-      toast.success("Profile updated! ✅");
-    } catch {
-      toast.error("Failed to update profile");
-    } finally {
-      setLoading(false);
-    }
+    await new Promise(r => setTimeout(r, 700));
+    const u = { ...user, ...form };
+    localStorage.setItem("user", JSON.stringify(u));
+    setUser(u); setEditing(false);
+    toast.success("Profile updated ✅");
+    setLoading(false);
   };
 
   const STATS = [
-    { icon: "📦", label: "Orders",   value: "12" },
-    { icon: "❤️", label: "Wishlist", value: "8"  },
-    { icon: "⭐", label: "Reviews",  value: "5"  },
-    { icon: "🛒", label: "Cart",     value: "3"  },
+    { icon: "📦", val: "12", label: "Orders",   to: "/orders"   },
+    { icon: "❤️", val: "8",  label: "Wishlist", to: "/wishlist" },
+    { icon: "🛒", val: "3",  label: "Cart",     to: "/cart"     },
+    { icon: "⭐", val: "5",  label: "Reviews",  to: "#"         },
+  ];
+
+  const FIELDS = [
+    { key: "name",    label: "Full Name", icon: "👤", type: "text",  ph: "Your name"        },
+    { key: "email",   label: "Email",     icon: "✉️", type: "email", ph: "your@email.com"   },
+    { key: "phone",   label: "Phone",     icon: "📞", type: "text",  ph: "+91 98765 43210"  },
+    { key: "address", label: "Address",   icon: "📍", type: "text",  ph: "Delivery address" },
+  ];
+
+  const TOGGLES = [
+    { label: "Email Notifications", desc: "Order updates via email",   def: true  },
+    { label: "SMS Alerts",          desc: "Delivery updates on phone", def: true  },
+    { label: "Promotional Offers",  desc: "Deals and discounts",       def: false },
   ];
 
   return (
-    <div className="profile-page" ref={pageRef}>
+    <div className="pp">
       <Navbar />
 
-      {/* Hero */}
-      <section className="profile-hero">
-        <div className="profile-hero-bg" />
-        <div className="profile-hero-content">
-          {/* Avatar */}
-          <div className="profile-avatar-wrap">
-            <div className="profile-avatar-circle">
-              {getInitials(user.name)}
-            </div>
-            <div className="profile-avatar-ring" />
-          </div>
+      {/* Three.js background */}
+      <ProfileBg />
 
-          <div className="profile-hero-info">
-            <h1 className="profile-hero-name">{user.name || "Your Name"}</h1>
-            <p className="profile-hero-email">{user.email || "your@email.com"}</p>
-            <span className="profile-badge">🍔 Food Lover</span>
+      {/* Glow overlay */}
+      <div className="p-glow" />
+
+      {/* ── Profile Header ── */}
+      <div className="p-header">
+        <div className="p-avatar-wrap">
+          <div className="p-avatar">{initials(user.name)}</div>
+          <div className="p-avatar-ring" />
+        </div>
+        <div>
+          <h1 className="p-name">{user.name || "Your Name"}</h1>
+          <div className="p-tags">
+            {user.email  && <span className="p-tag">✉️ {user.email}</span>}
+            {user.phone  && <span className="p-tag">📞 {user.phone}</span>}
+            <span className="p-tag p-tag-o">🍔 Food Lover</span>
           </div>
         </div>
+      </div>
 
-        {/* Stats */}
-        <div className="profile-stats">
-          {STATS.map((s, i) => (
-            <div className="profile-stat-card" key={i}>
-              <span className="pstat-icon">{s.icon}</span>
-              <span className="pstat-num">{s.value}</span>
-              <span className="pstat-label">{s.label}</span>
+      {/* ── Stats ── */}
+      <div className="p-stats">
+        {STATS.map((s, i) => (
+          <Link to={s.to} className="p-stat" key={i}>
+            <span className="p-si">{s.icon}</span>
+            <span className="p-sv">{s.val}</span>
+            <span className="p-sl">{s.label}</span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="p-hr" />
+
+      {/* ── Tabs ── */}
+      <div className="p-tabs">
+        {["info","settings"].map(t => (
+          <button key={t} className={`p-tab ${tab===t?"active":""}`} onClick={() => {
+            setTab(t);
+            gsap.fromTo(".p-content", { opacity:0, y:10 }, { opacity:1, y:0, duration:0.3 });
+          }}>
+            {t === "info" ? "👤 Personal Info" : "⚙️ Settings"}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Content ── */}
+      <div className="p-content">
+
+        {tab === "info" && (
+          <>
+            <div className="p-row-head">
+              <span className="p-row-title">Personal Information</span>
+              {!editing
+                ? <button className="p-btn-e" onClick={() => setEditing(true)}>Edit</button>
+                : <div className="p-btn-group">
+                    <button className="p-btn-c" onClick={() => { setEditing(false); setForm(user); }}>Cancel</button>
+                    <button className="p-btn-s" onClick={save} disabled={loading}>
+                      {loading ? <span className="p-spin"/> : "Save"}
+                    </button>
+                  </div>
+              }
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Profile Details */}
-      <section className="profile-body">
-        <div className="profile-grid">
+            {FIELDS.map(f => (
+              <div className="p-field" key={f.key}>
+                <span className="p-fl">{f.icon} {f.label}</span>
+                {editing
+                  ? <input className="p-fi" type={f.type} value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.ph}/>
+                  : <span className="p-fv">{user[f.key] || <em className="p-empty">Not set</em>}</span>
+                }
+              </div>
+            ))}
+          </>
+        )}
 
-          {/* Personal Info Card */}
-          <div className="profile-card">
-            <div className="pcard-header">
-              <h2 className="pcard-title">👤 Personal Information</h2>
-              {!editing ? (
-                <button className="pcard-edit-btn" onClick={() => setEditing(true)}>Edit</button>
-              ) : (
-                <div className="pcard-actions">
-                  <button className="pcard-cancel-btn" onClick={() => { setEditing(false); setForm(user); }}>Cancel</button>
-                  <button className="pcard-save-btn" onClick={handleSave} disabled={loading}>
-                    {loading ? <span className="spinner-sm" /> : "Save"}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="pcard-body">
-              <div className="pfield">
-                <label>Full Name</label>
-                {editing ? (
-                  <input value={form.name || ""} onChange={e => setForm({...form, name: e.target.value})} placeholder="Your full name" />
-                ) : (
-                  <p>{user.name || <span className="empty-val">Not set</span>}</p>
-                )}
-              </div>
-              <div className="pfield">
-                <label>Email Address</label>
-                {editing ? (
-                  <input value={form.email || ""} onChange={e => setForm({...form, email: e.target.value})} placeholder="your@email.com" type="email" />
-                ) : (
-                  <p>{user.email || <span className="empty-val">Not set</span>}</p>
-                )}
-              </div>
-              <div className="pfield">
-                <label>Phone Number</label>
-                {editing ? (
-                  <input value={form.phone || ""} onChange={e => setForm({...form, phone: e.target.value})} placeholder="+91 98765 43210" />
-                ) : (
-                  <p>{user.phone || <span className="empty-val">Not set</span>}</p>
-                )}
-              </div>
-              <div className="pfield">
-                <label>Delivery Address</label>
-                {editing ? (
-                  <textarea value={form.address || ""} onChange={e => setForm({...form, address: e.target.value})} placeholder="Your delivery address" rows={3} />
-                ) : (
-                  <p>{user.address || <span className="empty-val">Not set</span>}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Account Settings Card */}
-          <div className="profile-card">
-            <div className="pcard-header">
-              <h2 className="pcard-title">⚙️ Account Settings</h2>
-            </div>
-            <div className="pcard-body">
-              <div className="setting-item">
+        {tab === "settings" && (
+          <>
+            <p className="p-row-title" style={{marginBottom:"0.5rem"}}>Notifications</p>
+            {TOGGLES.map((t,i) => (
+              <div className="p-field" key={i}>
                 <div>
-                  <p className="setting-label">Email Notifications</p>
-                  <p className="setting-desc">Receive order updates via email</p>
+                  <p className="p-tl">{t.label}</p>
+                  <p className="p-td">{t.desc}</p>
                 </div>
-                <label className="toggle">
-                  <input type="checkbox" defaultChecked />
-                  <span className="toggle-slider" />
+                <label className="p-toggle">
+                  <input type="checkbox" defaultChecked={t.def}/>
+                  <span className="p-track"><span className="p-thumb"/></span>
                 </label>
               </div>
-              <div className="setting-item">
-                <div>
-                  <p className="setting-label">SMS Alerts</p>
-                  <p className="setting-desc">Get delivery updates on phone</p>
-                </div>
-                <label className="toggle">
-                  <input type="checkbox" defaultChecked />
-                  <span className="toggle-slider" />
-                </label>
-              </div>
-              <div className="setting-item">
-                <div>
-                  <p className="setting-label">Promotional Offers</p>
-                  <p className="setting-desc">Deals, discounts and new items</p>
-                </div>
-                <label className="toggle">
-                  <input type="checkbox" />
-                  <span className="toggle-slider" />
-                </label>
-              </div>
+            ))}
 
-              <div className="setting-divider" />
+            <p className="p-row-title" style={{margin:"1.2rem 0 0.5rem"}}>Security</p>
+            {[
+              { icon:"🔒", label:"Change Password", desc:"Update your account password", danger:false },
+              { icon:"🗑️", label:"Delete Account",  desc:"Permanently remove your account", danger:true  },
+            ].map((a,i) => (
+              <button className={`p-action ${a.danger?"p-action-d":""}`} key={i}>
+                <span>{a.icon}</span>
+                <div><p>{a.label}</p><span>{a.desc}</span></div>
+                <span className="p-chev">›</span>
+              </button>
+            ))}
+          </>
+        )}
 
-              <button className="change-pass-btn">🔒 Change Password</button>
-              <button className="delete-acc-btn">🗑️ Delete Account</button>
-            </div>
-          </div>
-
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

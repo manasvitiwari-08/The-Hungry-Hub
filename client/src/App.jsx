@@ -6,6 +6,10 @@ import Home from "./pages/Home";
 import Menu from "./pages/Menu";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Profile from "./pages/Profile";
+import Orders from "./pages/Orders";
+import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist";
 
 function App() {
   return (
@@ -30,6 +34,10 @@ function App() {
         <Route path="/contact"  element={<Contact />} />
         <Route path="/login"    element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/profile"  element={<Profile />} />
+        <Route path="/orders"   element={<Orders />} />
+        <Route path="/cart"     element={<Cart />} />
+        <Route path="/wishlist" element={<Wishlist />} />
       </Routes>
     </BrowserRouter>
   );
