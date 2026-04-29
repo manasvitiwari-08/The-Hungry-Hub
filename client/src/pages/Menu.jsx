@@ -1,10 +1,13 @@
 import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import MenuHeroBg from "../components/menu/MenuHeroBg";
 import MenuHeroCollage from "../components/menu/MenuHeroCollage";
+import { useCart } from "../context/CartContext";
 import "../styles/menu.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -112,7 +115,9 @@ const MENU_ITEMS = [
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
-  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState(new Set());
+  const { addToCart, totalItems, totalPrice } = useCart();
+  const navigate = useNavigate();
   const scrollRef = useRef(null);
 
   useGSAP(() => {
@@ -186,7 +191,32 @@ export default function Menu() {
     return matchCat && matchSearch;
   });
 
-  const addToCart = (item) => setCart((prev) => [...prev, item]);
+  const addItemToCart = (item) => {
+    addToCart(item);
+    toast.success(`${item.name} added to cart 🛒`, { duration: 1500 });
+  };
+
+  const toggleWishlist = (item) => {
+    setWishlist((prev) => {
+      const next = new Set(prev);
+      if (next.has(item.id)) {
+        next.delete(item.id);
+        // pop-out animation
+        gsap.fromTo(`#wl-btn-${item.id}`,
+          { scale: 1 },
+          { scale: 0.75, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }
+        );
+      } else {
+        next.add(item.id);
+        // heart burst animation
+        gsap.fromTo(`#wl-btn-${item.id}`,
+          { scale: 0.6 },
+          { scale: 1, duration: 0.4, ease: "back.out(2.5)" }
+        );
+      }
+      return next;
+    });
+  };
 
   // Drag scroll
   let isDown = false, startX, scrollLeft;
@@ -285,6 +315,15 @@ export default function Menu() {
                   <img src={item.img} alt={item.name} className="menu-card-img" loading="lazy" />
                   <div className="menu-card-img-overlay" />
                   {item.tag && <span className="menu-card-tag">{item.tag}</span>}
+                  {/* Wishlist heart */}
+                  <button
+                    id={`wl-btn-${item.id}`}
+                    className={`menu-wl-btn ${wishlist.has(item.id) ? "active" : ""}`}
+                    onClick={() => toggleWishlist(item)}
+                    aria-label={wishlist.has(item.id) ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    {wishlist.has(item.id) ? "❤️" : "🤍"}
+                  </button>
                 </div>
                 {/* Info */}
                 <div className="menu-card-body">
@@ -295,7 +334,7 @@ export default function Menu() {
                       <span className="menu-card-price">₹{item.price}</span>
                       <span className="menu-card-rating">⭐ {item.rating}</span>
                     </div>
-                    <button className="menu-add-btn" onClick={() => addToCart(item)}>+ Add</button>
+                    <button className="menu-add-btn" onClick={() => addItemToCart(item)}>+ Add</button>
                   </div>
                 </div>
               </div>
@@ -305,10 +344,15 @@ export default function Menu() {
       </section>
 
       {/* Floating Cart */}
-      {cart.length > 0 && (
+      {totalItems > 0 && (
         <div className="floating-cart">
-          🛒 {cart.length} item{cart.length > 1 ? "s" : ""} — ₹{cart.reduce((s, i) => s + i.price, 0)}
-          <button className="floating-cart-btn">View Cart</button>
+          🛒 {totalItems} item{totalItems > 1 ? "s" : ""} — ₹{totalPrice}
+          {wishlist.size > 0 && (
+            <span className="floating-wl-count">❤️ {wishlist.size}</span>
+          )}
+          <button className="floating-cart-btn" onClick={() => navigate("/cart")}>
+            View Cart →
+          </button>
         </div>
       )}
     </div>

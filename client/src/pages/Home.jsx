@@ -6,6 +6,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Navbar from "../components/Navbar";
 import HeroCanvas from "../components/home/HeroCanvas";
 import HeroFoodCards from "../components/home/HeroFoodCards";
+import FoodCarousel from "../components/home/FoodCarousel";
+import MarqueeTicker from "../components/home/MarqueeTicker";
+import CategoriesSection from "../components/home/CategoriesSection";
+import StatsSection from "../components/home/StatsSection";
+import TestimonialsSection from "../components/home/TestimonialsSection";
 import "../styles/home.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -17,19 +22,9 @@ const FEATURES = [
   { icon: "💳", title: "Easy Payment", desc: "Multiple secure payment options available" },
 ];
 
-const POPULAR = [
-  { emoji: "🍔", name: "Classic Smash Burger", price: "₹299", tag: "Bestseller", rating: "4.9" },
-  { emoji: "🍕", name: "Margherita Pizza", price: "₹349", tag: "Popular", rating: "4.8" },
-  { emoji: "🍜", name: "Spicy Ramen Bowl", price: "₹249", tag: "New", rating: "4.7" },
-  { emoji: "🌮", name: "Chicken Tacos", price: "₹199", tag: "Hot", rating: "4.8" },
-  { emoji: "🥗", name: "Caesar Salad", price: "₹179", tag: "Healthy", rating: "4.6" },
-  { emoji: "🍰", name: "Chocolate Lava Cake", price: "₹149", tag: "Sweet", rating: "4.9" },
-];
-
 export default function Home() {
   const heroTextRef = useRef(null);
   const featuresRef = useRef(null);
-  const popularRef = useRef(null);
 
   useGSAP(() => {
     // Hero text animation
@@ -153,6 +148,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── MARQUEE TICKER ── */}
+      <MarqueeTicker />
+
+      {/* ── FOOD CAROUSEL ── */}
+      <FoodCarousel />
+
+      {/* ── CATEGORIES SECTION ── */}
+      <CategoriesSection />
+
+      {/* ── STATS SECTION ── */}
+      <StatsSection />
+
       {/* ── FEATURES SECTION ── */}
       <section className="features-section" ref={featuresRef}>
         <div className="section-header">
@@ -172,33 +179,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── POPULAR ITEMS ── */}
-      <section className="popular-section" ref={popularRef}>
-        <div className="section-header">
-          <p className="section-tag">Most Loved</p>
-          <h2 className="section-title">Popular Right Now</h2>
-          <p className="section-sub">Handpicked favourites our customers can't stop ordering</p>
-        </div>
-
-        <div className="food-grid">
-          {POPULAR.map((item, i) => (
-            <div className="food-card" key={i}>
-              <div className="food-emoji">{item.emoji}</div>
-              <div className="food-tag">{item.tag}</div>
-              <h3 className="food-name">{item.name}</h3>
-              <div className="food-footer">
-                <span className="food-price">{item.price}</span>
-                <span className="food-rating">⭐ {item.rating}</span>
-              </div>
-              <button className="food-add-btn">Add to Cart +</button>
-            </div>
-          ))}
-        </div>
-
-        <div className="view-all-wrap">
-          <Link to="/menu" className="btn-primary">View Full Menu →</Link>
-        </div>
-      </section>
+      {/* ── TESTIMONIALS SECTION ── */}
+      <TestimonialsSection />
 
       {/* ── CTA SECTION ── */}
       <section className="cta-section">

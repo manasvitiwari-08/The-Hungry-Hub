@@ -1,158 +1,128 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import "../../styles/herofood.css";
 
-const FOOD_ITEMS = [
-  { emoji: "🍔", name: "Smash Burger", price: "₹299", rating: "4.9", color: "#ff6b00", delay: 0 },
-  { emoji: "🍕", name: "Margherita", price: "₹349", rating: "4.8", color: "#ff3d00", delay: 0.3 },
-  { emoji: "🍜", name: "Spicy Ramen", price: "₹249", rating: "4.7", color: "#e65c00", delay: 0.6 },
-  { emoji: "🌮", name: "Chicken Taco", price: "₹199", rating: "4.8", color: "#ff6b00", delay: 0.9 },
-  { emoji: "🍰", name: "Lava Cake", price: "₹149", rating: "4.9", color: "#ff3d00", delay: 1.2 },
-  { emoji: "🥗", name: "Caesar Salad", price: "₹179", rating: "4.6", color: "#e65c00", delay: 1.5 },
+const COLLAGE = [
+  {
+    img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop&auto=format",
+    size: 200, top: "5%",  left: "28%", rotate: "-8deg",  zIndex: 3, shape: "circle",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=400&fit=crop&auto=format",
+    size: 170, top: "8%",  left: "0%",  rotate: "6deg",   zIndex: 2, shape: "heart",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&h=400&fit=crop&auto=format",
+    size: 155, top: "42%", left: "48%", rotate: "10deg",  zIndex: 2, shape: "square",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=400&fit=crop&auto=format",
+    size: 175, top: "45%", left: "4%",  rotate: "-6deg",  zIndex: 3, shape: "squircle",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=400&fit=crop&auto=format",
+    size: 140, top: "2%",  left: "62%", rotate: "12deg",  zIndex: 1, shape: "circle",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&h=400&fit=crop&auto=format",
+    size: 145, top: "60%", left: "28%", rotate: "-10deg", zIndex: 2, shape: "heart",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=400&fit=crop&auto=format",
+    size: 130, top: "65%", left: "62%", rotate: "7deg",   zIndex: 1, shape: "square",
+  },
 ];
 
-// Positions for each card on the right side
-const POSITIONS = [
-  { top: "8%",  right: "18%", rotate: "-6deg",  scale: 1.05 },
-  { top: "5%",  right: "52%", rotate: "5deg",   scale: 0.95 },
-  { top: "38%", right: "8%",  rotate: "8deg",   scale: 1.0  },
-  { top: "42%", right: "48%", rotate: "-5deg",  scale: 0.9  },
-  { top: "68%", right: "20%", rotate: "6deg",   scale: 1.0  },
-  { top: "65%", right: "55%", rotate: "-8deg",  scale: 0.92 },
-];
+const HEART_ID = "hf-heart-clip";
+
+function HeartClipDef() {
+  return (
+    <svg width="0" height="0" style={{ position: "absolute", pointerEvents: "none" }}>
+      <defs>
+        <clipPath id={HEART_ID} clipPathUnits="objectBoundingBox">
+          <path d="M0.5,0.9 C0.5,0.9 0.05,0.55 0.05,0.3 C0.05,0.13 0.18,0.05 0.3,0.05 C0.38,0.05 0.46,0.1 0.5,0.18 C0.54,0.1 0.62,0.05 0.7,0.05 C0.82,0.05 0.95,0.13 0.95,0.3 C0.95,0.55 0.5,0.9 0.5,0.9 Z" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
+function getShapeStyle(shape) {
+  switch (shape) {
+    case "circle":   return { borderRadius: "50%", overflow: "hidden" };
+    case "heart":    return { clipPath: `url(#${HEART_ID})`, borderRadius: "0", overflow: "visible" };
+    case "square":   return { borderRadius: "22px", overflow: "hidden" };
+    case "squircle": return { borderRadius: "38% 62% 55% 45% / 45% 38% 62% 55%", overflow: "hidden" };
+    default:         return { borderRadius: "50%", overflow: "hidden" };
+  }
+}
 
 export default function HeroFoodCards() {
-  const containerRef = useRef(null);
+  const ref = useRef(null);
 
   useGSAP(() => {
-    const cards = containerRef.current.querySelectorAll(".hf-card");
+    const cards = ref.current.querySelectorAll(".hf-card");
 
-    // Entrance animation
-    gsap.fromTo(
-      cards,
-      { opacity: 0, scale: 0.5, y: 60 },
-      {
-        opacity: 1,
-        scale: (i) => POSITIONS[i].scale,
-        y: 0,
-        duration: 0.7,
-        stagger: 0.15,
-        ease: "back.out(1.6)",
-        delay: 0.6,
-      }
+    gsap.fromTo(cards,
+      { opacity: 0, scale: 0.5, y: 40 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.8, stagger: 0.12, ease: "back.out(1.5)", delay: 0.5 }
     );
 
-    // Individual floating animations for each card
     cards.forEach((card, i) => {
-      const yAmt  = 12 + (i % 3) * 6;
-      const dur   = 2.2 + i * 0.4;
-      const xAmt  = 6 + (i % 2) * 4;
-
       gsap.to(card, {
-        y: `-=${yAmt}`,
-        x: i % 2 === 0 ? `+=${xAmt}` : `-=${xAmt}`,
+        y: `-=${10 + (i % 3) * 6}`,
+        x: i % 2 === 0 ? `+=${5 + (i % 2) * 4}` : `-=${5 + (i % 2) * 4}`,
         rotation: `+=${i % 2 === 0 ? 3 : -3}`,
-        duration: dur,
+        duration: 2.4 + i * 0.35,
         ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        delay: i * 0.3,
+        yoyo: true, repeat: -1,
+        delay: i * 0.2,
       });
     });
 
-    // Glow pulse on each card
-    gsap.to(".hf-card-glow", {
-      opacity: 0.6,
-      scale: 1.2,
-      duration: 1.8,
-      ease: "sine.inOut",
-      yoyo: true,
-      repeat: -1,
-      stagger: 0.4,
+    gsap.to(".hf-glow", {
+      opacity: 0.7, scale: 1.15,
+      duration: 2, ease: "sine.inOut",
+      yoyo: true, repeat: -1, stagger: 0.5,
     });
 
-    // Rotating ring
-    gsap.to(".hf-ring", {
-      rotation: 360,
-      duration: 20,
-      ease: "none",
-      repeat: -1,
-    });
-    gsap.to(".hf-ring-2", {
-      rotation: -360,
-      duration: 15,
-      ease: "none",
-      repeat: -1,
-    });
-
-    // Orbiting dots
-    gsap.to(".hf-orbit-dot", {
-      rotation: 360,
-      duration: 8,
-      ease: "none",
-      repeat: -1,
-      transformOrigin: "center center",
-      stagger: { each: 1, from: "start" },
-    });
+    gsap.to(".hf-ring",   { rotation: 360,  duration: 16, ease: "none", repeat: -1 });
+    gsap.to(".hf-ring-2", { rotation: -360, duration: 22, ease: "none", repeat: -1 });
 
   }, []);
 
   return (
-    <div className="hf-container" ref={containerRef}>
+    <div className="hf-container" ref={ref}>
+      <HeartClipDef />
 
-      {/* Decorative rings */}
       <div className="hf-ring" />
       <div className="hf-ring-2" />
-
-      {/* Center glow */}
       <div className="hf-center-glow" />
 
-      {/* Orbit dots */}
-      {[...Array(5)].map((_, i) => (
-        <div
-          key={i}
-          className="hf-orbit-dot"
-          style={{
-            top: `${20 + i * 14}%`,
-            left: `${10 + i * 12}%`,
-            animationDelay: `${i * 0.5}s`,
-          }}
-        />
-      ))}
-
-      {/* Food Cards */}
-      {FOOD_ITEMS.map((item, i) => (
+      {COLLAGE.map((item, i) => (
         <div
           key={i}
           className="hf-card"
           style={{
-            top: POSITIONS[i].top,
-            right: POSITIONS[i].right,
-            "--card-color": item.color,
+            width:  item.size,
+            height: item.size,
+            top:    item.top,
+            left:   item.left,
+            zIndex: item.zIndex,
+            "--rot": item.rotate,
+            ...getShapeStyle(item.shape),
           }}
         >
-          {/* Glow behind card */}
-          <div className="hf-card-glow" style={{ background: item.color }} />
-
-          {/* Card content */}
-          <div className="hf-card-inner">
-            <span className="hf-card-emoji">{item.emoji}</span>
-            <div className="hf-card-info">
-              <span className="hf-card-name">{item.name}</span>
-              <div className="hf-card-meta">
-                <span className="hf-card-price">{item.price}</span>
-                <span className="hf-card-rating">⭐ {item.rating}</span>
-              </div>
-            </div>
-          </div>
+          <div className="hf-glow" />
+          <img src={item.img} alt="food" className="hf-img" draggable="false" />
+          <div className="hf-shine" />
         </div>
       ))}
 
-      {/* Floating mini badges */}
-      <div className="hf-badge hf-badge-1">🔥 Hot Deal</div>
-      <div className="hf-badge hf-badge-2">⚡ 30 min</div>
-      <div className="hf-badge hf-badge-3">🌿 Fresh</div>
+      <div className="hf-label hf-label-1">🔥 Trending</div>
+      <div className="hf-label hf-label-2">⭐ 4.9 Rated</div>
+      <div className="hf-label hf-label-3">🚀 30 min</div>
     </div>
   );
 }

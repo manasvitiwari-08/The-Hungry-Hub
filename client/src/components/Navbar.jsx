@@ -2,13 +2,13 @@ import { useRef, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import { useCart } from "../context/CartContext";
 import "../styles/navbar.css";
 
 const NAV_LINKS = [
   { label: "Home",    path: "/" },
   { label: "Menu",    path: "/menu" },
-  { label: "About",   path: "/about" },
-  { label: "Contact", path: "/contact" },
+  { label: "Orders",  path: "/orders" },
 ];
 
 export default function Navbar({ search = "", onSearchChange }) {
@@ -23,12 +23,18 @@ export default function Navbar({ search = "", onSearchChange }) {
   const [searchOpen,  setSearchOpen]  = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
+  const { totalItems } = useCart();
+
   // Get user from localStorage
-  const [user, setUser] = useState(null);
+  const [user,   setUser]   = useState(null);
+  const [avatar, setAvatar] = useState(null);
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem("user");
       if (stored) setUser(JSON.parse(stored));
+      const av = localStorage.getItem("avatar");
+      if (av) setAvatar(av);
     } catch {}
   }, []);
 
@@ -152,7 +158,7 @@ export default function Navbar({ search = "", onSearchChange }) {
 
         {/* Cart */}
         <Link to="/cart" className="nav-cart" aria-label="Cart">
-          🛒 <span className="cart-badge">0</span>
+          🛒 {totalItems > 0 && <span className="cart-badge">{totalItems > 99 ? "99+" : totalItems}</span>}
         </Link>
 
         {/* Profile Avatar */}
@@ -163,7 +169,10 @@ export default function Navbar({ search = "", onSearchChange }) {
             aria-label="Profile menu"
           >
             <div className="profile-avatar">
-              {user?.name ? getInitials(user.name) : "U"}
+              {avatar
+                ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
+                : (user?.name ? getInitials(user.name) : "U")
+              }
             </div>
             <span className="profile-chevron">{profileOpen ? "▲" : "▼"}</span>
           </button>
@@ -174,7 +183,10 @@ export default function Navbar({ search = "", onSearchChange }) {
               {/* User info */}
               <div className="profile-info">
                 <div className="profile-avatar-lg">
-                  {user?.name ? getInitials(user.name) : "U"}
+                  {avatar
+                    ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
+                    : (user?.name ? getInitials(user.name) : "U")
+                  }
                 </div>
                 <div>
                   <p className="profile-name">{user?.name || "Guest User"}</p>
@@ -196,6 +208,15 @@ export default function Navbar({ search = "", onSearchChange }) {
               </Link>
               <Link to="/wishlist" className="dropdown-item" onClick={() => setProfileOpen(false)}>
                 <span>❤️</span> Wishlist
+              </Link>
+
+              <div className="dropdown-divider" />
+
+              <Link to="/about" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                <span>ℹ️</span> About Us
+              </Link>
+              <Link to="/contact" className="dropdown-item" onClick={() => setProfileOpen(false)}>
+                <span>📩</span> Contact
               </Link>
 
               <div className="dropdown-divider" />
@@ -241,8 +262,15 @@ export default function Navbar({ search = "", onSearchChange }) {
             {link.label}
           </Link>
         ))}
+        <Link to="/about" className="mobile-link" onClick={() => setMenuOpen(false)}>About</Link>
+        <Link to="/contact" className="mobile-link" onClick={() => setMenuOpen(false)}>Contact</Link>
         <div className="mobile-profile-info">
-          <span className="mobile-avatar">{user?.name ? getInitials(user.name) : "U"}</span>
+          <span className="mobile-avatar">
+            {avatar
+              ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
+              : (user?.name ? getInitials(user.name) : "U")
+            }
+          </span>
           <span>{user?.name || "Guest"}</span>
         </div>
         <button className="mobile-logout" onClick={handleLogout}>🚪 Logout</button>

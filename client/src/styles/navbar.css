@@ -89,14 +89,21 @@
   right: -8px;
   background: #ff6b00;
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  width: 18px;
+  min-width: 18px;
   height: 18px;
-  border-radius: 50%;
+  padding: 0 4px;
+  border-radius: 99px;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: badgePop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 2px 8px rgba(255,107,0,0.5);
+}
+@keyframes badgePop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
 }
 .nav-logout-btn {
   background: rgba(255, 107, 0, 0.12);
@@ -212,6 +219,7 @@
   box-shadow: 0 0 12px rgba(255, 107, 0, 0.3);
   transition: transform 0.2s, box-shadow 0.2s;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .profile-avatar-btn:hover .profile-avatar {
@@ -265,6 +273,16 @@
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+  overflow: hidden;
+}
+
+/* Avatar image inside circles */
+.nav-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .profile-name {
@@ -355,6 +373,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 /* ===== NAVBAR SEARCH ===== */
