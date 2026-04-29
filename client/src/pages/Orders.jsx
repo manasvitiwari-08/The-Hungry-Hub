@@ -185,25 +185,56 @@ export default function Orders() {
       });
 
       // Transform backend data to match frontend format
-      const transformedOrders = response.data.orders.map(order => ({
-        id: order._id,
-        items: order.items.map(item => ({
-          name: item.name,
-          img: item.image,
-          image: item.image,
-          price: item.price,
-          qty: item.qty
-        })),
-        total: order.totalAmount,
-        status: order.status,
-        date: new Date(order.createdAt).toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric'
-        }),
-        paymentMethod: order.paymentMethod,
-        deliveryAddress: order.deliveryAddress
-      }));
+      const transformedOrders = response.data.orders.map(order => {
+        // Create short order ID (last 8 characters)
+        const shortId = `#${order._id.slice(-8).toUpperCase()}`;
+        
+        // Format time as "X mins ago" or "X hours ago"
+        const orderTime = new Date(order.createdAt);
+        const now = new Date();
+        const diffMs = now - orderTime;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        let timeAgo;
+        if (diffMins < 1) {
+          timeAgo = "Just now";
+        } else if (diffMins < 60) {
+          timeAgo = `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`;
+        } else if (diffHours < 24) {
+          timeAgo = `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        } else if (diffDays < 7) {
+          timeAgo = `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+        } else {
+          timeAgo = orderTime.toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short'
+          });
+        }
+        
+        return {
+          id: shortId,
+          fullId: order._id,
+          items: order.items.map(item => ({
+            name: item.name,
+            img: item.image,
+            image: item.image,
+            price: item.price,
+            qty: item.qty
+          })),
+          total: order.totalAmount,
+          status: order.status,
+          date: orderTime.toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          }),
+          timeAgo: timeAgo,
+          paymentMethod: order.paymentMethod,
+          deliveryAddress: order.deliveryAddress
+        };
+      });
 
       setOrders(transformedOrders);
     } catch (error) {
@@ -241,7 +272,11 @@ export default function Orders() {
   const handleCancel = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`${API_URL}/orders/${id}/cancel`, {}, {
+      // Find the full ID from the order
+      const order = orders.find(o => o.id === id);
+      const fullId = order?.fullId || id;
+      
+      await axios.put(`${API_URL}/orders/${fullId}/cancel`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -359,7 +394,7 @@ export default function Orders() {
                         <span className="order-items-text">
                           {order.items.map(i => i.name).join(", ")}
                         </span>
-                        <span className="order-date">{order.date}</span>
+                        <span className="order-date">🕐 {order.timeAgo}</span>
                       </div>
                     </div>
 
