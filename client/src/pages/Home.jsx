@@ -11,6 +11,11 @@ import MarqueeTicker from "../components/home/MarqueeTicker";
 import CategoriesSection from "../components/home/CategoriesSection";
 import StatsSection from "../components/home/StatsSection";
 import TestimonialsSection from "../components/home/TestimonialsSection";
+import HowItWorks from "../components/home/HowItWorks";
+import SpecialOffers from "../components/home/SpecialOffers";
+import PopularDishes from "../components/home/PopularDishes";
+import AppDownload from "../components/home/AppDownload";
+import Newsletter from "../components/home/Newsletter";
 import "../styles/home.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -152,13 +157,22 @@ export default function Home() {
       <MarqueeTicker />
 
       {/* ── FOOD CAROUSEL ── */}
-      <FoodCarousel />
+      <div id="carousel"><FoodCarousel /></div>
 
       {/* ── CATEGORIES SECTION ── */}
-      <CategoriesSection />
+      <div id="categories"><CategoriesSection /></div>
+
+      {/* ── POPULAR DISHES ── */}
+      <div id="popular-dishes"><PopularDishes /></div>
+
+      {/* ── SPECIAL OFFERS ── */}
+      <div id="special-offers"><SpecialOffers /></div>
+
+      {/* ── HOW IT WORKS ── */}
+      <div id="how-it-works"><HowItWorks /></div>
 
       {/* ── STATS SECTION ── */}
-      <StatsSection />
+      <div id="stats"><StatsSection /></div>
 
       {/* ── FEATURES SECTION ── */}
       <section className="features-section" ref={featuresRef}>
@@ -180,21 +194,13 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIALS SECTION ── */}
-      <TestimonialsSection />
+      <div id="testimonials"><TestimonialsSection /></div>
 
-      {/* ── CTA SECTION ── */}
-      <section className="cta-section">
-        <div className="cta-blob" />
-        <div className="cta-content">
-          <h2 className="cta-title">Ready to Order? 🍔</h2>
-          <p className="cta-sub">
-            Join 50,000+ food lovers and get your first order with free delivery!
-          </p>
-          <Link to="/register" className="btn-primary cta-btn">
-            Order Now — It's Free
-          </Link>
-        </div>
-      </section>
+      {/* ── APP DOWNLOAD ── */}
+      <div id="app-download"><AppDownload /></div>
+
+      {/* ── NEWSLETTER ── */}
+      <div id="newsletter"><Newsletter /></div>
 
       {/* ── FOOTER ── */}
       <footer className="footer">

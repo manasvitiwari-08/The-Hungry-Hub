@@ -1,6 +1,6 @@
 /* ===== FOOD CAROUSEL ===== */
 .fc-section {
-  padding: 3rem 4rem 3rem;
+  padding: 2rem 4rem;
   background: #0a0a0a;
   overflow: hidden;
 }
@@ -8,7 +8,7 @@
 /* Header */
 .fc-header {
   display: flex; align-items: flex-end; justify-content: space-between;
-  margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
 }
 .fc-tag {
   color: #ff6b00; font-size: 0.8rem; font-weight: 700;
@@ -193,7 +193,7 @@
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .fc-section { padding: 4rem 1.5rem 3rem; }
+  .fc-section { padding: 2rem 1.5rem 2rem; }
   .fc-body { grid-template-columns: 1fr; }
   .fc-thumbs { grid-column: 1; grid-row: 2; flex-direction: row; max-height: unset; overflow-x: auto; }
   .fc-thumb { width: 100px; height: 70px; flex-shrink: 0; }

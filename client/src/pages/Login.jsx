@@ -43,6 +43,13 @@ export default function Login() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
+      
+      // Save token to localStorage
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+      
       toast.success("Welcome back! 🍔");
       navigate("/");
     } catch (err) {

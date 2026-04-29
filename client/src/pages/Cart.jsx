@@ -3,10 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import toast from "react-hot-toast";
+import axios from "axios";
 import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar";
 import { useCart } from "../context/CartContext";
 import "../styles/cart.css";
+
+const API_URL = "http://localhost:5000/api";
 
 // ── Add Address Mini Form ─────────────────────────────────────
 function AddAddressForm({ onSave, onCancel }) {
@@ -420,23 +423,69 @@ export default function Cart() {
 
   const handleCheckout = () => setShowCheckout(true);
 
-  const handleOrderConfirm = ({ address, payment }) => {
-    // Save order to localStorage (until backend order API is wired)
-    const order = {
-      id: `#ORD-${Date.now()}`,
-      date: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-      items: cartItems,
-      total,
-      deliveryAddress: address,
-      paymentMethod: payment,
-      status: "pending",
-    };
-    const prev = JSON.parse(localStorage.getItem("orders") || "[]");
-    localStorage.setItem("orders", JSON.stringify([order, ...prev]));
-    clearCart();
-    setShowCheckout(false);
-    toast.success("Order placed successfully! 🎉");
-    navigate("/orders");
+  const handleOrderConfirm = async ({ address, payment }) => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        toast.error("Please login to place order");
+        navigate("/login");
+        return;
+      }
+
+      // Validate cart items have valid IDs
+      const invalidItems = cartItems.filter(item => !item._id && !item.id);
+      if (invalidItems.length > 0) {
+        toast.error("Some items in cart are invalid. Please refresh and try again.");
+        console.error("Invalid cart items:", invalidItems);
+        return;
+      }
+
+      // Prepare order data for backend
+      const orderData = {
+        items: cartItems.map(item => ({
+          menuItemId: item._id || item.id,
+          qty: item.qty
+        })),
+        deliveryAddress: {
+          line: address.line,
+          city: address.city,
+          pincode: address.pincode || ""
+        },
+        // Map frontend payment methods to backend format
+        paymentMethod: payment === "cod" ? "cod" : "online",
+        couponCode: couponApplied ? coupon.trim().toUpperCase() : ""
+      };
+
+      console.log("Placing order with data:", orderData);
+      console.log("Using token:", token ? "Token exists" : "No token");
+
+      // Place order via API
+      const response = await axios.post(`${API_URL}/orders`, orderData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      console.log("Order placed successfully:", response.data);
+
+      // Clear cart and redirect
+      clearCart();
+      setShowCheckout(false);
+      toast.success("Order placed successfully! 🎉");
+      navigate("/orders");
+    } catch (error) {
+      console.error("Error placing order:", error);
+      console.error("Error response:", error.response?.data);
+      
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again");
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else if (error.response?.status === 400) {
+        toast.error(error.response?.data?.message || "Invalid order data");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to place order");
+      }
+    }
   };
 
   return (
@@ -477,12 +526,22 @@ export default function Cart() {
             <div className="cart-rows">
               {cartItems.map(item => (
                 <div className="cart-row" key={item.id} id={`cr-${item.id}`}>
-                  <img src={item.img} alt={item.name} className="cart-row-img" />
+                  <img src={item.img || item.image || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop&auto=format"} alt={item.name} className="cart-row-img" />
                   <div className="cart-row-info">
                     <span className="cart-row-cat">{item.category}</span>
                     <h3 className="cart-row-name">{item.name}</h3>
                     <p className="cart-row-desc">{item.desc}</p>
-                    <span className="cart-row-unit">₹{item.price} / item</span>
+                    <div className="cart-row-price-info">
+                      {item.discount > 0 ? (
+                        <>
+                          <span className="cart-row-original">₹{item.originalPrice}</span>
+                          <span className="cart-row-unit">₹{item.price} / item</span>
+                          <span className="cart-row-discount">{item.discount}% OFF</span>
+                        </>
+                      ) : (
+                        <span className="cart-row-unit">₹{item.price} / item</span>
+                      )}
+                    </div>
                   </div>
                   <div className="cart-row-right">
                     <div className="cart-qty">

@@ -1,7 +1,7 @@
 /* ===== TESTIMONIALS SECTION ===== */
 .testimonials-section {
   background: #0a0a0a;
-  padding: 5rem 4rem;
+  padding: 2rem 4rem;
 }
 
 /* Cards grid */
@@ -148,7 +148,7 @@
 
 @media (max-width: 768px) {
   .testimonials-section {
-    padding: 4rem 1.5rem;
+    padding: 2.5rem 1.5rem;
   }
   .testimonials-grid {
     grid-template-columns: 1fr;

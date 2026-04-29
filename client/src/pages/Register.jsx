@@ -155,6 +155,12 @@ export default function Register() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Registration failed");
 
+      // Save token to localStorage
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
       setStep(3);
       animateStep();
       setTimeout(() => navigate("/"), 2500);

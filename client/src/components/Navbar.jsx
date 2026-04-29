@@ -6,9 +6,23 @@ import { useCart } from "../context/CartContext";
 import "../styles/navbar.css";
 
 const NAV_LINKS = [
-  { label: "Home",    path: "/" },
-  { label: "Menu",    path: "/menu" },
-  { label: "Orders",  path: "/orders" },
+  { label: "Home",     path: "/",        auth: null   },
+  { label: "Menu",     path: "/menu",    auth: null   },
+  { label: "Orders",   path: "/orders",  auth: true   },
+  { label: "Wishlist", path: "/wishlist",auth: true   },
+];
+
+// Home page section anchors
+const EXPLORE_LINKS = [
+  { label: "🍽️ Featured Dishes",  id: "carousel" },
+  { label: "🗂️ Categories",     id: "categories" },
+  { label: "🍽️ Popular Dishes", id: "popular-dishes" },
+  { label: "🔥 Special Offers", id: "special-offers" },
+  { label: "🪜 How It Works",   id: "how-it-works" },
+  { label: "📊 Stats",          id: "stats" },
+  { label: "⭐ Testimonials",   id: "testimonials" },
+  { label: "📱 App Download",   id: "app-download" },
+  { label: "📧 Newsletter",     id: "newsletter" },
 ];
 
 export default function Navbar({ search = "", onSearchChange }) {
@@ -22,6 +36,8 @@ export default function Navbar({ search = "", onSearchChange }) {
   const [menuOpen,    setMenuOpen]    = useState(false);
   const [searchOpen,  setSearchOpen]  = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
+  const exploreRef = useRef(null);
 
   const { totalItems } = useCart();
 
@@ -71,6 +87,9 @@ export default function Navbar({ search = "", onSearchChange }) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setProfileOpen(false);
       }
+      if (exploreRef.current && !exploreRef.current.contains(e.target)) {
+        setExploreOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -104,6 +123,20 @@ export default function Navbar({ search = "", onSearchChange }) {
     return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
   };
 
+  // Scroll to section on home page
+  const scrollToSection = (id) => {
+    setExploreOpen(false);
+    setMenuOpen(false);
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 400);
+    } else {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <nav ref={navRef} className={`navbar ${scrolled ? "scrolled" : ""}`}>
 
@@ -115,7 +148,11 @@ export default function Navbar({ search = "", onSearchChange }) {
 
       {/* Desktop Links */}
       <ul className="nav-links">
-        {NAV_LINKS.map((link) => (
+        {NAV_LINKS.filter(link =>
+          link.auth === null ||          // always visible
+          (link.auth === true && user) || // only when logged in
+          (link.auth === false && !user)  // only when logged out
+        ).map((link) => (
           <li key={link.path}>
             <Link
               to={link.path}
@@ -125,6 +162,30 @@ export default function Navbar({ search = "", onSearchChange }) {
             </Link>
           </li>
         ))}
+
+        {/* Explore dropdown */}
+        <li className="explore-wrap" ref={exploreRef}>
+          <button
+            className={`nav-link explore-btn ${exploreOpen ? "active" : ""}`}
+            onClick={() => setExploreOpen(!exploreOpen)}
+          >
+            Explore ▾
+          </button>
+          {exploreOpen && (
+            <div className="explore-dropdown">
+              <p className="explore-dropdown-title">Jump to Section</p>
+              {EXPLORE_LINKS.map((item) => (
+                <button key={item.id} className="explore-item" onClick={() => scrollToSection(item.id)}>
+                  {item.label}
+                </button>
+              ))}
+              <div className="explore-divider" />
+              <button className="explore-item explore-app-btn" onClick={() => scrollToSection("app-download")}>
+                📱 Get the App
+              </button>
+            </div>
+          )}
+        </li>
       </ul>
 
       {/* Search Bar */}
@@ -156,77 +217,75 @@ export default function Navbar({ search = "", onSearchChange }) {
           </button>
         )}
 
-        {/* Cart */}
-        <Link to="/cart" className="nav-cart" aria-label="Cart">
-          🛒 {totalItems > 0 && <span className="cart-badge">{totalItems > 99 ? "99+" : totalItems}</span>}
-        </Link>
+        {/* Cart — only when logged in */}
+        {user && (
+          <Link to="/cart" className="nav-cart" aria-label="Cart">
+            🛒 {totalItems > 0 && <span className="cart-badge">{totalItems > 99 ? "99+" : totalItems}</span>}
+          </Link>
+        )}
 
-        {/* Profile Avatar */}
-        <div className="profile-wrap" ref={dropdownRef}>
-          <button
-            className="profile-avatar-btn"
-            onClick={() => setProfileOpen(!profileOpen)}
-            aria-label="Profile menu"
-          >
-            <div className="profile-avatar">
-              {avatar
-                ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
-                : (user?.name ? getInitials(user.name) : "U")
-              }
-            </div>
-            <span className="profile-chevron">{profileOpen ? "▲" : "▼"}</span>
-          </button>
+        {/* If NOT logged in: show Login + Register */}
+        {!user && (
+          <div className="nav-auth-btns">
+            <Link to="/login" className="nav-login-btn">Login</Link>
+            <Link to="/register" className="nav-register-btn">Sign Up</Link>
+          </div>
+        )}
 
-          {/* Dropdown */}
-          {profileOpen && (
-            <div className="profile-dropdown">
-              {/* User info */}
-              <div className="profile-info">
-                <div className="profile-avatar-lg">
-                  {avatar
-                    ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
-                    : (user?.name ? getInitials(user.name) : "U")
-                  }
-                </div>
-                <div>
-                  <p className="profile-name">{user?.name || "Guest User"}</p>
-                  <p className="profile-email">{user?.email || "Not logged in"}</p>
-                </div>
+        {/* Profile Avatar — only when logged in */}
+        {user && (
+          <div className="profile-wrap" ref={dropdownRef}>
+            <button
+              className="profile-avatar-btn"
+              onClick={() => setProfileOpen(!profileOpen)}
+              aria-label="Profile menu"
+            >
+              <div className="profile-avatar">
+                {avatar
+                  ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
+                  : (user?.name ? getInitials(user.name) : "U")
+                }
               </div>
+              <span className="profile-chevron">{profileOpen ? "▲" : "▼"}</span>
+            </button>
 
-              <div className="dropdown-divider" />
+            {/* Dropdown */}
+            {profileOpen && (
+              <div className="profile-dropdown">
+                <div className="profile-info">
+                  <div className="profile-avatar-lg">
+                    {avatar
+                      ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
+                      : (user?.name ? getInitials(user.name) : "U")
+                    }
+                  </div>
+                  <div>
+                    <p className="profile-name">{user?.name || "Guest User"}</p>
+                    <p className="profile-email">{user?.email || "Not logged in"}</p>
+                  </div>
+                </div>
 
-              {/* Menu items */}
-              <Link to="/profile" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                <span>👤</span> My Profile
-              </Link>
-              <Link to="/orders" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                <span>📦</span> My Orders
-              </Link>
-              <Link to="/cart" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                <span>🛒</span> My Cart
-              </Link>
-              <Link to="/wishlist" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                <span>❤️</span> Wishlist
-              </Link>
+                <div className="dropdown-divider" />
 
-              <div className="dropdown-divider" />
+                <Link to="/profile"  className="dropdown-item" onClick={() => setProfileOpen(false)}><span>👤</span> My Profile</Link>
+                <Link to="/orders"   className="dropdown-item" onClick={() => setProfileOpen(false)}><span>📦</span> My Orders</Link>
+                <Link to="/cart"     className="dropdown-item" onClick={() => setProfileOpen(false)}><span>🛒</span> My Cart</Link>
+                <Link to="/wishlist" className="dropdown-item" onClick={() => setProfileOpen(false)}><span>❤️</span> Wishlist</Link>
 
-              <Link to="/about" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                <span>ℹ️</span> About Us
-              </Link>
-              <Link to="/contact" className="dropdown-item" onClick={() => setProfileOpen(false)}>
-                <span>📩</span> Contact
-              </Link>
+                <div className="dropdown-divider" />
 
-              <div className="dropdown-divider" />
+                <Link to="/about"   className="dropdown-item" onClick={() => setProfileOpen(false)}><span>ℹ️</span> About Us</Link>
+                <Link to="/contact" className="dropdown-item" onClick={() => setProfileOpen(false)}><span>📩</span> Contact</Link>
 
-              <button className="dropdown-item dropdown-logout" onClick={handleLogout}>
-                <span>🚪</span> Logout
-              </button>
-            </div>
-          )}
-        </div>
+                <div className="dropdown-divider" />
+
+                <button className="dropdown-item dropdown-logout" onClick={handleLogout}>
+                  <span>🚪</span> Logout
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Mobile Hamburger */}
@@ -252,7 +311,11 @@ export default function Navbar({ search = "", onSearchChange }) {
             />
           </div>
         )}
-        {NAV_LINKS.map((link) => (
+        {NAV_LINKS.filter(link =>
+          link.auth === null ||
+          (link.auth === true && user) ||
+          (link.auth === false && !user)
+        ).map((link) => (
           <Link
             key={link.path}
             to={link.path}
@@ -262,18 +325,26 @@ export default function Navbar({ search = "", onSearchChange }) {
             {link.label}
           </Link>
         ))}
-        <Link to="/about" className="mobile-link" onClick={() => setMenuOpen(false)}>About</Link>
-        <Link to="/contact" className="mobile-link" onClick={() => setMenuOpen(false)}>Contact</Link>
-        <div className="mobile-profile-info">
-          <span className="mobile-avatar">
-            {avatar
-              ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
-              : (user?.name ? getInitials(user.name) : "U")
-            }
-          </span>
-          <span>{user?.name || "Guest"}</span>
-        </div>
-        <button className="mobile-logout" onClick={handleLogout}>🚪 Logout</button>
+
+        {!user ? (
+          <div className="mobile-auth-btns">
+            <Link to="/login"    className="nav-login-btn"    onClick={() => setMenuOpen(false)}>Login</Link>
+            <Link to="/register" className="nav-register-btn" onClick={() => setMenuOpen(false)}>Sign Up</Link>
+          </div>
+        ) : (
+          <>
+            <div className="mobile-profile-info">
+              <span className="mobile-avatar">
+                {avatar
+                  ? <img src={avatar} alt="avatar" className="nav-avatar-img" />
+                  : (user?.name ? getInitials(user.name) : "U")
+                }
+              </span>
+              <span>{user?.name || "Guest"}</span>
+            </div>
+            <button className="mobile-logout" onClick={handleLogout}>🚪 Logout</button>
+          </>
+        )}
       </div>
     </nav>
   );

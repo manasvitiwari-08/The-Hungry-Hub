@@ -17,6 +17,12 @@ const menuItemSchema = new mongoose.Schema(
       required: [true, 'Price is required'],
       min: [0, 'Price cannot be negative'],
     },
+    discount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100, // percentage
+    },
     category: {
       type: String,
       required: [true, 'Category is required'],
@@ -56,6 +62,30 @@ const menuItemSchema = new mongoose.Schema(
     isAvailable: {
       type: Boolean,
       default: true,
+    },
+    stock: {
+      type: Number,
+      default: 100,
+      min: 0,
+    },
+    inStock: {
+      type: Boolean,
+      default: true,
+    },
+    preparationTime: {
+      type: Number,
+      default: 15, // minutes
+      min: 0,
+    },
+    isVeg: {
+      type: Boolean,
+      default: false,
+    },
+    spicyLevel: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 3, // 0: Not spicy, 1: Mild, 2: Medium, 3: Hot
     },
   },
   { timestamps: true }

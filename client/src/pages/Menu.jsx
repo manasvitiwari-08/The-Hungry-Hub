@@ -1,16 +1,20 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import toast from "react-hot-toast";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import MenuHeroBg from "../components/menu/MenuHeroBg";
 import MenuHeroCollage from "../components/menu/MenuHeroCollage";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 import "../styles/menu.css";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const API_URL = "http://localhost:5000/api";
 
 const CATEGORIES = [
   { name: "All",        img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop&auto=format", color: "#ff6b00" },
@@ -25,28 +29,8 @@ const CATEGORIES = [
   { name: "Drinks",     img: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=200&h=200&fit=crop&auto=format", color: "#3b82f6" },
 ];
 
-const MENU_ITEMS = [
-  // Burgers
-  { id: 1,  img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop&auto=format", name: "Classic Smash Burger",   price: 299, category: "Burgers",  rating: 4.9, tag: "Bestseller", desc: "Double smash patty, secret sauce, cheddar" },
-  { id: 2,  img: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&h=300&fit=crop&auto=format", name: "BBQ Bacon Burger",        price: 349, category: "Burgers",  rating: 4.8, tag: "Popular",    desc: "Crispy bacon, BBQ glaze, caramelized onions" },
-  { id: 3,  img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&h=300&fit=crop&auto=format", name: "Mushroom Swiss Burger",  price: 319, category: "Burgers",  rating: 4.7, tag: "",          desc: "Sautéed mushrooms, Swiss cheese, truffle mayo" },
-  { id: 4,  img: "https://images.unsplash.com/photo-1520072959219-c595dc870360?w=400&h=300&fit=crop&auto=format", name: "Veggie Burger",          price: 249, category: "Burgers",  rating: 4.6, tag: "Veg",        desc: "Black bean patty, avocado, fresh veggies" },
-  { id: 25, img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400&h=300&fit=crop&auto=format", name: "Double Cheese Burger",   price: 379, category: "Burgers",  rating: 4.8, tag: "Cheesy",     desc: "Double cheddar, lettuce, tomato, pickles" },
-  { id: 26, img: "https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&h=300&fit=crop&auto=format", name: "Spicy Jalapeño Burger",  price: 329, category: "Burgers",  rating: 4.7, tag: "Spicy 🌶️",  desc: "Jalapeño, pepper jack cheese, chipotle mayo" },
-  { id: 27, img: "https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=400&h=300&fit=crop&auto=format", name: "Crispy Chicken Burger",  price: 289, category: "Burgers",  rating: 4.8, tag: "Crispy",     desc: "Fried chicken fillet, coleslaw, honey mustard" },
-  { id: 28, img: "https://images.unsplash.com/photo-1607013251379-e6eecfffe234?w=400&h=300&fit=crop&auto=format", name: "Truffle Burger",         price: 449, category: "Burgers",  rating: 4.9, tag: "Premium",    desc: "Wagyu beef, truffle aioli, arugula, brie" },
-  // Pizza
-  { id: 5,  img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop&auto=format", name: "Margherita Pizza",       price: 349, category: "Pizza",    rating: 4.8, tag: "Classic",    desc: "San Marzano tomatoes, fresh mozzarella, basil" },
-  { id: 6,  img: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop&auto=format", name: "Pepperoni Feast",        price: 399, category: "Pizza",    rating: 4.9, tag: "Bestseller", desc: "Double pepperoni, mozzarella, oregano" },
-  { id: 7,  img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop&auto=format", name: "BBQ Chicken Pizza",      price: 379, category: "Pizza",    rating: 4.7, tag: "",          desc: "Grilled chicken, BBQ sauce, red onions" },
-  { id: 8,  img: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&h=300&fit=crop&auto=format", name: "Paneer Tikka Pizza",     price: 359, category: "Pizza",    rating: 4.8, tag: "Spicy",      desc: "Tandoori paneer, capsicum, tikka sauce" },
-  { id: 29, img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop&auto=format", name: "Four Cheese Pizza",      price: 419, category: "Pizza",    rating: 4.9, tag: "Cheesy",     desc: "Mozzarella, cheddar, parmesan, gorgonzola" },
-  { id: 30, img: "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400&h=300&fit=crop&auto=format", name: "Veggie Supreme Pizza",   price: 349, category: "Pizza",    rating: 4.6, tag: "Veg",        desc: "Bell peppers, olives, mushrooms, onions" },
-  { id: 31, img: "https://images.unsplash.com/photo-1548369937-47519962c11a?w=400&h=300&fit=crop&auto=format", name: "Meat Lovers Pizza",      price: 449, category: "Pizza",    rating: 4.9, tag: "Hot",        desc: "Pepperoni, sausage, bacon, ham, beef" },
-  { id: 32, img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=300&fit=crop&auto=format", name: "Pesto Chicken Pizza",    price: 389, category: "Pizza",    rating: 4.7, tag: "New",        desc: "Basil pesto, grilled chicken, sun-dried tomato" },
-  // Asian
-  { id: 9,  img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop&auto=format", name: "Spicy Ramen Bowl",       price: 249, category: "Asian",    rating: 4.7, tag: "Hot",        desc: "Rich tonkotsu broth, soft egg, nori" },
-  { id: 10, img: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&h=300&fit=crop&auto=format", name: "Chicken Bento Box",      price: 299, category: "Asian",    rating: 4.6, tag: "",          desc: "Teriyaki chicken, rice, miso soup, pickles" },
+// Fallback menu items (used if backend is unavailable)
+const FALLBACK_MENU_ITEMS = [
   { id: 11, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&h=300&fit=crop&auto=format", name: "Steamed Dumplings",      price: 199, category: "Asian",    rating: 4.8, tag: "Popular",    desc: "Pork & ginger filling, soy dipping sauce" },
   { id: 12, img: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&h=300&fit=crop&auto=format", name: "Thai Green Curry",       price: 279, category: "Asian",    rating: 4.7, tag: "",          desc: "Coconut milk, Thai basil, jasmine rice" },
   { id: 33, img: "https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=400&h=300&fit=crop&auto=format", name: "Pad Thai Noodles",       price: 229, category: "Asian",    rating: 4.8, tag: "Trending",   desc: "Rice noodles, shrimp, peanuts, tamarind sauce" },
@@ -115,10 +99,30 @@ const MENU_ITEMS = [
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
-  const [wishlist, setWishlist] = useState(new Set());
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart, totalItems, totalPrice } = useCart();
+  const { toggleWishlist, isInWishlist, wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const scrollRef = useRef(null);
+
+  // Fetch menu items from backend
+  useEffect(() => {
+    fetchMenuItems();
+  }, []);
+
+  const fetchMenuItems = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}/menu`);
+      setMenuItems(response.data.items || []);
+    } catch (error) {
+      console.error("Error fetching menu items:", error);
+      toast.error("Failed to load menu items");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useGSAP(() => {
     // Hero text animations — each element separately
@@ -185,37 +189,50 @@ export default function Menu() {
     );
   }, [activeCategory]);
 
-  const filtered = MENU_ITEMS.filter((item) => {
+  const filtered = menuItems.filter((item) => {
     const matchCat = activeCategory === "All" || item.category === activeCategory;
     const matchSearch = item.name.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
+    return matchCat && matchSearch; // Backend already filters by isAvailable
   });
 
   const addItemToCart = (item) => {
-    addToCart(item);
+    // Calculate discounted price if discount exists
+    const actualPrice = item.discount > 0 
+      ? Math.round(item.price * (1 - item.discount / 100))
+      : item.price;
+    
+    // Ensure image field is available as 'img' for cart compatibility
+    const cartItem = {
+      ...item,
+      img: item.image || item.img,
+      id: item._id || item.id,
+      originalPrice: item.price,
+      price: actualPrice, // Use discounted price
+      discount: item.discount || 0
+    };
+    addToCart(cartItem);
     toast.success(`${item.name} added to cart 🛒`, { duration: 1500 });
   };
 
-  const toggleWishlist = (item) => {
-    setWishlist((prev) => {
-      const next = new Set(prev);
-      if (next.has(item.id)) {
-        next.delete(item.id);
-        // pop-out animation
-        gsap.fromTo(`#wl-btn-${item.id}`,
-          { scale: 1 },
-          { scale: 0.75, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }
-        );
-      } else {
-        next.add(item.id);
-        // heart burst animation
-        gsap.fromTo(`#wl-btn-${item.id}`,
-          { scale: 0.6 },
-          { scale: 1, duration: 0.4, ease: "back.out(2.5)" }
-        );
-      }
-      return next;
-    });
+  const handleToggleWishlist = (item) => {
+    const wasInWishlist = isInWishlist(item.id);
+    toggleWishlist(item);
+    
+    if (wasInWishlist) {
+      toast.success(`Removed from wishlist`, { duration: 1500 });
+      // pop-out animation
+      gsap.fromTo(`#wl-btn-${item.id}`,
+        { scale: 1 },
+        { scale: 0.75, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }
+      );
+    } else {
+      toast.success(`${item.name} added to wishlist ❤️`, { duration: 1500 });
+      // heart burst animation
+      gsap.fromTo(`#wl-btn-${item.id}`,
+        { scale: 0.6 },
+        { scale: 1, duration: 0.4, ease: "back.out(2.5)" }
+      );
+    }
   };
 
   // Drag scroll
@@ -309,32 +326,69 @@ export default function Menu() {
             </div>
           ) : (
             filtered.map((item) => (
-              <div className="menu-card" key={item.id}>
+              <div className="menu-card" key={item._id}>
                 {/* Image */}
                 <div className="menu-card-img-wrap">
-                  <img src={item.img} alt={item.name} className="menu-card-img" loading="lazy" />
-                  <div className="menu-card-img-overlay" />
-                  {item.tag && <span className="menu-card-tag">{item.tag}</span>}
+                  <img src={item.image || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop&auto=format"} alt={item.name} className="menu-card-img" loading="lazy" />
+                  
+                  {/* VEG/NON-VEG Icon - Top Left */}
+                  <span 
+                    className={`food-type-icon ${item.isVeg ? 'veg' : 'non-veg'}`}
+                    title={item.isVeg ? "Vegetarian" : "Non-Vegetarian"}
+                  ></span>
+                  
+                  {/* Out of Stock Ribbon */}
+                  {item.inStock === false && (
+                    <div className="corner-ribbon">
+                      <span>OUT OF STOCK</span>
+                    </div>
+                  )}
+                  
                   {/* Wishlist heart */}
                   <button
-                    id={`wl-btn-${item.id}`}
-                    className={`menu-wl-btn ${wishlist.has(item.id) ? "active" : ""}`}
-                    onClick={() => toggleWishlist(item)}
-                    aria-label={wishlist.has(item.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    id={`wl-btn-${item._id}`}
+                    className={`menu-wl-btn ${isInWishlist(item._id) ? "active" : ""}`}
+                    onClick={() => handleToggleWishlist(item)}
+                    aria-label={isInWishlist(item._id) ? "Remove from wishlist" : "Add to wishlist"}
                   >
-                    {wishlist.has(item.id) ? "❤️" : "🤍"}
+                    {isInWishlist(item._id) ? "❤️" : "🤍"}
                   </button>
                 </div>
+                
                 {/* Info */}
                 <div className="menu-card-body">
-                  <h3 className="menu-card-name">{item.name}</h3>
-                  <p className="menu-card-desc">{item.desc}</p>
-                  <div className="menu-card-footer">
-                    <div className="menu-card-left">
-                      <span className="menu-card-price">₹{item.price}</span>
-                      <span className="menu-card-rating">⭐ {item.rating}</span>
+                  <div className="menu-card-header">
+                    <h3 className="menu-card-name">{item.name}</h3>
+                    <div className="menu-card-meta">
+                      <span className="menu-card-rating">
+                        <span className="rating-star">★</span>
+                        {item.rating || 4.5}
+                      </span>
+                      {item.tag && <span className="badge-tag">• {item.tag}</span>}
                     </div>
-                    <button className="menu-add-btn" onClick={() => addItemToCart(item)}>+ Add</button>
+                  </div>
+                  
+                  <p className="menu-card-desc">{item.description}</p>
+                  
+                  <div className="menu-card-footer">
+                    <div className="menu-card-price-wrapper">
+                      {item.discount > 0 ? (
+                        <>
+                          <span className="menu-card-price-original">₹{item.price}</span>
+                          <span className="menu-card-price">₹{Math.round(item.price * (1 - item.discount / 100))}</span>
+                          <span className="menu-card-discount">{item.discount}% OFF</span>
+                        </>
+                      ) : (
+                        <span className="menu-card-price">₹{item.price}</span>
+                      )}
+                    </div>
+                    <button 
+                      className="menu-add-btn" 
+                      onClick={() => addItemToCart(item)}
+                      disabled={item.inStock === false}
+                    >
+                      {item.inStock === false ? "Out of Stock" : "Add to Cart"}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -347,8 +401,8 @@ export default function Menu() {
       {totalItems > 0 && (
         <div className="floating-cart">
           🛒 {totalItems} item{totalItems > 1 ? "s" : ""} — ₹{totalPrice}
-          {wishlist.size > 0 && (
-            <span className="floating-wl-count">❤️ {wishlist.size}</span>
+          {wishlistCount > 0 && (
+            <span className="floating-wl-count">❤️ {wishlistCount}</span>
           )}
           <button className="floating-cart-btn" onClick={() => navigate("/cart")}>
             View Cart →

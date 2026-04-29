@@ -299,12 +299,8 @@ export default function Profile() {
   }, []);
 
   useGSAP(() => {
-    const tl = gsap.timeline({ delay: 0.2 });
-    tl.fromTo(".p-avatar-wrap", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.7)" })
-      .fromTo(".p-name",    { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, "-=0.3")
-      .fromTo(".p-tags",    { opacity: 0, y: 10 },  { opacity: 1, y: 0, duration: 0.4 }, "-=0.2")
-      .fromTo(".p-stat",    { opacity: 0, y: 16 },  { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: "back.out(1.4)" }, "-=0.1")
-      .fromTo(".p-content", { opacity: 0, y: 20 },  { opacity: 1, y: 0, duration: 0.5 }, "-=0.1");
+    gsap.fromTo(".p-avatar-wrap", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.7)", delay: 0.2 });
+    gsap.fromTo(".p-content", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.4 });
   }, []);
 
   const initials = (n) => n ? n.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2) : "U";
@@ -393,144 +389,140 @@ export default function Profile() {
       <ProfileBg />
       <div className="p-glow" />
 
-      {/* ── Profile Header ── */}
-      <div className="p-header">
-        {/* Avatar with upload */}
-        <div className="p-avatar-wrap">
-          <div className="p-avatar" onClick={() => fileRef.current.click()}>
-            {avatar
-              ? <img src={avatar} alt="avatar" className="p-avatar-img" />
-              : <span>{initials(user.name)}</span>
-            }
-            <div className="p-avatar-edit-overlay">
-              <span className="p-avatar-cam">📷</span>
-            </div>
-          </div>
-          <div className="p-avatar-ring" />
-          <input ref={fileRef} type="file" accept="image/*" style={{ display:"none" }} onChange={onFileChange} />
-        </div>
+      <div className="p-layout">
 
-        <div>
+        {/* ── LEFT COLUMN ── */}
+        <aside className="p-sidebar">
+          {/* Avatar */}
+          <div className="p-avatar-wrap">
+            <div className="p-avatar" onClick={() => fileRef.current.click()}>
+              {avatar
+                ? <img src={avatar} alt="avatar" className="p-avatar-img" />
+                : <span>{initials(user.name)}</span>
+              }
+              <div className="p-avatar-edit-overlay">
+                <span className="p-avatar-cam">📷</span>
+              </div>
+            </div>
+            <div className="p-avatar-ring" />
+            <input ref={fileRef} type="file" accept="image/*" style={{ display:"none" }} onChange={onFileChange} />
+          </div>
+
           <h1 className="p-name">{user.name || "Your Name"}</h1>
           <div className="p-tags">
             {user.email && <span className="p-tag">✉️ {user.email}</span>}
             {user.phone && <span className="p-tag">📞 {user.phone}</span>}
             <span className="p-tag p-tag-o">🍔 Food Lover</span>
           </div>
-        </div>
-      </div>
 
-      {/* ── Stats ── */}
-      <div className="p-stats">
-        {STATS.map((s, i) => (
-          <Link to={s.to} className="p-stat" key={i}>
-            <span className="p-si">{s.icon}</span>
-            <span className="p-sv">{s.val}</span>
-            <span className="p-sl">{s.label}</span>
-          </Link>
-        ))}
-      </div>
-
-      <div className="p-hr" />
-
-      {/* ── Tabs ── */}
-      <div className="p-tabs">
-        {["info","address","settings"].map(t => (
-          <button key={t} className={`p-tab ${tab===t?"active":""}`} onClick={() => {
-            setTab(t);
-            gsap.fromTo(".p-content", { opacity:0, y:10 }, { opacity:1, y:0, duration:0.3 });
-          }}>
-            {t === "info" ? "👤 Personal Info" : t === "address" ? "📍 Addresses" : "⚙️ Settings"}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Content ── */}
-      <div className="p-content">
-
-        {/* Personal Info Tab */}
-        {tab === "info" && (
-          <>
-            <div className="p-row-head">
-              <span className="p-row-title">Personal Information</span>
-              {!editing
-                ? <button className="p-btn-e" onClick={() => setEditing(true)}>Edit</button>
-                : <div className="p-btn-group">
-                    <button className="p-btn-c" onClick={() => { setEditing(false); setForm(user); }}>Cancel</button>
-                    <button className="p-btn-s" onClick={save} disabled={loading}>
-                      {loading ? <span className="p-spin"/> : "Save"}
-                    </button>
-                  </div>
-              }
-            </div>
-
-            {FIELDS.map(f => (
-              <div className="p-field" key={f.key}>
-                <span className="p-fl">{f.icon} {f.label}</span>
-                {editing
-                  ? <input className="p-fi" type={f.type} value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.ph}/>
-                  : <span className="p-fv">{user[f.key] || <em className="p-empty">Not set</em>}</span>
-                }
-              </div>
+          {/* Stats */}
+          <div className="p-stats">
+            {STATS.map((s, i) => (
+              <Link to={s.to} className="p-stat" key={i}>
+                <span className="p-si">{s.icon}</span>
+                <span className="p-sv">{s.val}</span>
+                <span className="p-sl">{s.label}</span>
+              </Link>
             ))}
-          </>
-        )}
+          </div>
 
-        {/* Address Tab */}
-        {tab === "address" && (
-          <AddressSection
-            addresses={addresses}
-            onAdd={() => setAddrModal("new")}
-            onEdit={(i) => setAddrModal(i)}
-            onDelete={deleteAddress}
-            onSetDefault={setDefault}
-          />
-        )}
-
-        {/* Settings Tab */}
-        {tab === "settings" && (
-          <>
-            <p className="p-row-title" style={{marginBottom:"0.5rem"}}>Notifications</p>
-            {TOGGLES.map((t,i) => (
-              <div className="p-field" key={i}>
-                <div>
-                  <p className="p-tl">{t.label}</p>
-                  <p className="p-td">{t.desc}</p>
-                </div>
-                <label className="p-toggle">
-                  <input type="checkbox" defaultChecked={t.def}/>
-                  <span className="p-track"><span className="p-thumb"/></span>
-                </label>
-              </div>
-            ))}
-
-            <p className="p-row-title" style={{margin:"1.2rem 0 0.5rem"}}>Security</p>
-            {[
-              { icon:"🔒", label:"Change Password", desc:"Update your account password", danger:false },
-              { icon:"🗑️", label:"Delete Account",  desc:"Permanently remove your account", danger:true  },
-            ].map((a,i) => (
-              <button className={`p-action ${a.danger?"p-action-d":""}`} key={i}>
-                <span>{a.icon}</span>
-                <div><p>{a.label}</p><span>{a.desc}</span></div>
-                <span className="p-chev">›</span>
+          {/* Sidebar nav */}
+          <nav className="p-sidenav">
+            {["info","address","settings"].map(t => (
+              <button key={t} className={`p-sidenav-btn ${tab===t?"active":""}`} onClick={() => {
+                setTab(t);
+                gsap.fromTo(".p-content", { opacity:0, y:10 }, { opacity:1, y:0, duration:0.3 });
+              }}>
+                <span>{t === "info" ? "👤" : t === "address" ? "📍" : "⚙️"}</span>
+                {t === "info" ? "Personal Info" : t === "address" ? "Addresses" : "Settings"}
               </button>
             ))}
-          </>
-        )}
+          </nav>
+        </aside>
 
+        {/* ── RIGHT COLUMN ── */}
+        <main className="p-main">
+          <div className="p-content">
+
+            {/* Personal Info Tab */}
+            {tab === "info" && (
+              <>
+                <div className="p-row-head">
+                  <span className="p-row-title">Personal Information</span>
+                  {!editing
+                    ? <button className="p-btn-e" onClick={() => setEditing(true)}>Edit</button>
+                    : <div className="p-btn-group">
+                        <button className="p-btn-c" onClick={() => { setEditing(false); setForm(user); }}>Cancel</button>
+                        <button className="p-btn-s" onClick={save} disabled={loading}>
+                          {loading ? <span className="p-spin"/> : "Save"}
+                        </button>
+                      </div>
+                  }
+                </div>
+                {FIELDS.map(f => (
+                  <div className="p-field" key={f.key}>
+                    <span className="p-fl">{f.icon} {f.label}</span>
+                    {editing
+                      ? <input className="p-fi" type={f.type} value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.ph}/>
+                      : <span className="p-fv">{user[f.key] || <em className="p-empty">Not set</em>}</span>
+                    }
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Address Tab */}
+            {tab === "address" && (
+              <AddressSection
+                addresses={addresses}
+                onAdd={() => setAddrModal("new")}
+                onEdit={(i) => setAddrModal(i)}
+                onDelete={deleteAddress}
+                onSetDefault={setDefault}
+              />
+            )}
+
+            {/* Settings Tab */}
+            {tab === "settings" && (
+              <>
+                <p className="p-row-title" style={{marginBottom:"0.5rem"}}>Notifications</p>
+                {TOGGLES.map((t,i) => (
+                  <div className="p-field" key={i}>
+                    <div>
+                      <p className="p-tl">{t.label}</p>
+                      <p className="p-td">{t.desc}</p>
+                    </div>
+                    <label className="p-toggle">
+                      <input type="checkbox" defaultChecked={t.def}/>
+                      <span className="p-track"><span className="p-thumb"/></span>
+                    </label>
+                  </div>
+                ))}
+                <p className="p-row-title" style={{margin:"1.2rem 0 0.5rem"}}>Security</p>
+                {[
+                  { icon:"🔒", label:"Change Password", desc:"Update your account password", danger:false },
+                  { icon:"🗑️", label:"Delete Account",  desc:"Permanently remove your account", danger:true  },
+                ].map((a,i) => (
+                  <button className={`p-action ${a.danger?"p-action-d":""}`} key={i}>
+                    <span>{a.icon}</span>
+                    <div><p>{a.label}</p><span>{a.desc}</span></div>
+                    <span className="p-chev">›</span>
+                  </button>
+                ))}
+              </>
+            )}
+
+          </div>
+        </main>
       </div>
 
-      {/* ── Crop Modal (Portal) ── */}
+      {/* Crop Modal */}
       {cropSrc && createPortal(
-        <CropModal
-          src={cropSrc}
-          onDone={onCropDone}
-          onClose={() => setCropSrc(null)}
-        />,
+        <CropModal src={cropSrc} onDone={onCropDone} onClose={() => setCropSrc(null)} />,
         document.body
       )}
 
-      {/* ── Address Modal (Portal) ── */}
+      {/* Address Modal */}
       {addrModal !== null && createPortal(
         <AddressModal
           initial={addrModal !== "new" ? addresses[addrModal] : null}

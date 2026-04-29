@@ -18,10 +18,32 @@ const upload = multer({
 });
 
 // ── GET /api/menu ────────────────────────────────────────────
-// Supports ?category=Burgers&search=burger
+// Public - Only available items
 router.get('/', async (req, res, next) => {
   try {
     const filter = { isAvailable: true };
+
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    if (req.query.search) {
+      const regex = new RegExp(req.query.search, 'i');
+      filter.$or = [{ name: regex }, { description: regex }, { tag: regex }];
+    }
+
+    const items = await MenuItem.find(filter).sort({ createdAt: -1 });
+    res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/menu/all ────────────────────────────────────────
+// Admin only - All items (available + unavailable)
+router.get('/all', protect, adminOnly, async (req, res, next) => {
+  try {
+    const filter = {};
 
     if (req.query.category) {
       filter.category = req.query.category;
@@ -53,10 +75,44 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // ── POST /api/menu ───────────────────────────────────────────
-// Admin only — create menu item with optional image upload
-router.post('/', protect, adminOnly, upload.single('image'), async (req, res, next) => {
+// Admin only — create menu item with JSON data (image URL)
+router.post('/', protect, adminOnly, async (req, res, next) => {
   try {
-    const { name, description, price, category, tag, isAvailable } = req.body;
+    const { name, description, price, discount, category, tag, isAvailable, image, stock, inStock, preparationTime, isVeg, spicyLevel } = req.body;
+
+    if (!name || !price || !category) {
+      return res.status(400).json({ message: 'Name, price, and category are required' });
+    }
+
+    const item = await MenuItem.create({
+      name,
+      description: description || '',
+      price: Number(price),
+      discount: discount ? Number(discount) : 0,
+      category,
+      image: image || '',
+      tag: tag || '',
+      rating: 0, // Start with 0, customers will rate
+      ratingCount: 0,
+      isAvailable: isAvailable !== undefined ? isAvailable : true,
+      stock: stock ? Number(stock) : 100,
+      inStock: inStock !== undefined ? inStock : true,
+      preparationTime: preparationTime ? Number(preparationTime) : 15,
+      isVeg: isVeg || false,
+      spicyLevel: spicyLevel ? Number(spicyLevel) : 0,
+    });
+
+    res.status(201).json({ message: 'Menu item created', item });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /api/menu/upload ────────────────────────────────────
+// Admin only — create menu item with file upload
+router.post('/upload', protect, adminOnly, upload.single('image'), async (req, res, next) => {
+  try {
+    const { name, description, price, category, tag, isAvailable, rating } = req.body;
 
     if (!name || !price || !category) {
       return res.status(400).json({ message: 'Name, price, and category are required' });
@@ -75,6 +131,7 @@ router.post('/', protect, adminOnly, upload.single('image'), async (req, res, ne
       category,
       image: imageUrl,
       tag: tag || '',
+      rating: rating ? Number(rating) : 0,
       isAvailable: isAvailable !== undefined ? isAvailable : true,
     });
 
@@ -85,21 +142,57 @@ router.post('/', protect, adminOnly, upload.single('image'), async (req, res, ne
 });
 
 // ── PUT /api/menu/:id ────────────────────────────────────────
-// Admin only — update item
-router.put('/:id', protect, adminOnly, upload.single('image'), async (req, res, next) => {
+// Admin only — update item with JSON data
+router.put('/:id', protect, adminOnly, async (req, res, next) => {
   try {
     const item = await MenuItem.findById(req.params.id);
     if (!item) {
       return res.status(404).json({ message: 'Menu item not found' });
     }
 
-    const { name, description, price, category, tag, isAvailable } = req.body;
+    const { name, description, price, discount, category, tag, isAvailable, image, stock, inStock, preparationTime, isVeg, spicyLevel } = req.body;
+
+    if (name !== undefined) item.name = name;
+    if (description !== undefined) item.description = description;
+    if (price !== undefined) item.price = Number(price);
+    if (discount !== undefined) item.discount = Number(discount);
+    if (category !== undefined) item.category = category;
+    if (tag !== undefined) item.tag = tag;
+    if (isAvailable !== undefined) item.isAvailable = isAvailable;
+    if (image !== undefined) item.image = image;
+    if (stock !== undefined) item.stock = Number(stock);
+    if (inStock !== undefined) item.inStock = inStock;
+    if (preparationTime !== undefined) item.preparationTime = Number(preparationTime);
+    if (isVeg !== undefined) item.isVeg = isVeg;
+    if (spicyLevel !== undefined) item.spicyLevel = Number(spicyLevel);
+    
+    // Note: rating and ratingCount are NOT updated by admin, only by customers
+
+    await item.save();
+
+    res.json({ message: 'Menu item updated', item });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── PUT /api/menu/:id/upload ─────────────────────────────────
+// Admin only — update item with file upload
+router.put('/:id/upload', protect, adminOnly, upload.single('image'), async (req, res, next) => {
+  try {
+    const item = await MenuItem.findById(req.params.id);
+    if (!item) {
+      return res.status(404).json({ message: 'Menu item not found' });
+    }
+
+    const { name, description, price, category, tag, isAvailable, rating } = req.body;
 
     if (name !== undefined) item.name = name;
     if (description !== undefined) item.description = description;
     if (price !== undefined) item.price = Number(price);
     if (category !== undefined) item.category = category;
     if (tag !== undefined) item.tag = tag;
+    if (rating !== undefined) item.rating = Number(rating);
     if (isAvailable !== undefined) item.isAvailable = isAvailable;
 
     if (req.file) {
@@ -124,6 +217,56 @@ router.delete('/:id', protect, adminOnly, async (req, res, next) => {
       return res.status(404).json({ message: 'Menu item not found' });
     }
     res.json({ message: 'Menu item deleted' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /api/menu/bulk-delete ───────────────────────────────
+// Admin only — delete multiple items
+router.post('/bulk-delete', protect, adminOnly, async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Please provide item IDs to delete' });
+    }
+
+    const result = await MenuItem.deleteMany({ _id: { $in: ids } });
+    res.json({ message: `${result.deletedCount} items deleted successfully` });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /api/menu/:id/duplicate ─────────────────────────────
+// Admin only — duplicate an item
+router.post('/:id/duplicate', protect, adminOnly, async (req, res, next) => {
+  try {
+    const original = await MenuItem.findById(req.params.id);
+    if (!original) {
+      return res.status(404).json({ message: 'Menu item not found' });
+    }
+
+    const duplicate = await MenuItem.create({
+      name: `${original.name} (Copy)`,
+      description: original.description,
+      price: original.price,
+      discount: original.discount || 0,
+      category: original.category,
+      image: original.image,
+      tag: original.tag,
+      rating: 0,
+      ratingCount: 0,
+      isAvailable: false, // Start as unavailable
+      stock: original.stock,
+      inStock: original.inStock,
+      preparationTime: original.preparationTime,
+      isVeg: original.isVeg,
+      spicyLevel: original.spicyLevel,
+    });
+
+    res.status(201).json({ message: 'Item duplicated successfully', item: duplicate });
   } catch (err) {
     next(err);
   }

@@ -171,7 +171,7 @@
 /* ===== SECTION COMMON ===== */
 .section-header {
   text-align: center;
-  margin-bottom: 3.5rem;
+  margin-bottom: 1.2rem;
 }
 .section-tag {
   color: #ff6b00;
@@ -198,7 +198,7 @@
 
 /* ===== FEATURES ===== */
 .features-section {
-  padding: 4rem 4rem 3rem;
+  padding: 2rem 4rem;
   background: #0f0f0f;
 }
 
@@ -333,7 +333,7 @@
 /* ===== CTA ===== */
 .cta-section {
   position: relative;
-  padding: 6rem 4rem;
+  padding: 2rem 4rem;
   background: #0f0f0f;
   text-align: center;
   overflow: hidden;
@@ -418,7 +418,7 @@
 
 @media (max-width: 768px) {
   .hero-content { padding: 0 1.5rem; padding-top: 6rem; }
-  .features-section, .popular-section, .cta-section { padding: 4rem 1.5rem; }
+  .features-section, .popular-section, .cta-section { padding: 2.5rem 1.5rem; }
   .features-grid { grid-template-columns: 1fr; }
   .food-grid { grid-template-columns: 1fr; }
   .footer { flex-direction: column; align-items: center; text-align: center; padding: 2rem 1.5rem; }

@@ -4,94 +4,114 @@ import { createPortal } from "react-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import toast from "react-hot-toast";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import { useCart } from "../context/CartContext";
 import "../styles/orders.css";
 
-// ── Status config ─────────────────────────────────────────────
+const API_URL = "http://localhost:5000/api";
+
 const STATUS = {
-  pending:          { label: "Pending",          color: "#f59e0b", bg: "rgba(245,158,11,0.12)",  icon: "🕐" },
-  confirmed:        { label: "Confirmed",         color: "#3b82f6", bg: "rgba(59,130,246,0.12)",  icon: "✅" },
-  preparing:        { label: "Preparing",         color: "#a855f7", bg: "rgba(168,85,247,0.12)",  icon: "👨‍🍳" },
-  out_for_delivery: { label: "Out for Delivery",  color: "#ff6b00", bg: "rgba(255,107,0,0.12)",   icon: "🛵" },
-  delivered:        { label: "Delivered",         color: "#22c55e", bg: "rgba(34,197,94,0.12)",   icon: "🎉" },
-  cancelled:        { label: "Cancelled",         color: "#ff4444", bg: "rgba(255,68,68,0.12)",   icon: "✕"  },
-  // legacy keys from old data
-  Delivered:        { label: "Delivered",         color: "#22c55e", bg: "rgba(34,197,94,0.12)",   icon: "🎉" },
-  Cancelled:        { label: "Cancelled",         color: "#ff4444", bg: "rgba(255,68,68,0.12)",   icon: "✕"  },
-  Pending:          { label: "Pending",           color: "#f59e0b", bg: "rgba(245,158,11,0.12)",  icon: "🕐" },
+  pending:          { label: "Pending",         color: "#f59e0b", bg: "rgba(245,158,11,0.15)", icon: "🕐" },
+  confirmed:        { label: "Confirmed",        color: "#3b82f6", bg: "rgba(59,130,246,0.15)", icon: "✅" },
+  preparing:        { label: "Preparing",        color: "#a855f7", bg: "rgba(168,85,247,0.15)", icon: "👨‍🍳" },
+  out_for_delivery: { label: "Out for Delivery", color: "#ff6b00", bg: "rgba(255,107,0,0.15)",  icon: "🛵" },
+  delivered:        { label: "Delivered",        color: "#22c55e", bg: "rgba(34,197,94,0.15)",  icon: "🎉" },
+  cancelled:        { label: "Cancelled",        color: "#ef4444", bg: "rgba(239,68,68,0.15)",  icon: "✕"  },
+  Delivered:        { label: "Delivered",        color: "#22c55e", bg: "rgba(34,197,94,0.15)",  icon: "🎉" },
+  Cancelled:        { label: "Cancelled",        color: "#ef4444", bg: "rgba(239,68,68,0.15)",  icon: "✕"  },
+  Pending:          { label: "Pending",          color: "#f59e0b", bg: "rgba(245,158,11,0.15)", icon: "🕐" },
 };
 
-const PAYMENT_LABEL = { cod: "Cash on Delivery", upi: "UPI", card: "Card", wallet: "Wallet", netbank: "Net Banking", online: "Online" };
+const PAYMENT_LABEL = {
+  cod: "Cash on Delivery", upi: "UPI", card: "Card",
+  wallet: "Wallet", netbank: "Net Banking", online: "Online",
+};
 
 const FILTERS = ["All", "Pending", "Preparing", "Out for Delivery", "Delivered", "Cancelled"];
 
-// ── Order Detail Modal ────────────────────────────────────────
+const TIMELINE_STEPS = ["pending", "confirmed", "preparing", "out_for_delivery", "delivered"];
+const STATUS_ORDER   = ["pending", "confirmed", "preparing", "out_for_delivery", "delivered", "cancelled"];
+
+// ─────────────────────────────────────────────
+// Order Detail Modal
+// ─────────────────────────────────────────────
 function OrderDetailModal({ order, onClose, onReorder, onCancel }) {
   const s = STATUS[order.status] || STATUS.pending;
+  const canCancel = ["pending", "confirmed", "Pending"].includes(order.status);
+  const currentIdx = STATUS_ORDER.indexOf((order.status || "").toLowerCase());
+  const isCancelled = ["cancelled", "Cancelled"].includes(order.status);
 
   useEffect(() => {
     gsap.fromTo(".od-modal",
-      { opacity: 0, y: 24, scale: 0.97 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "power3.out" }
+      { opacity: 0, y: 30, scale: 0.96 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out" }
     );
   }, []);
-
-  const canCancel = ["pending", "confirmed", "Pending"].includes(order.status);
 
   return createPortal(
     <div className="od-overlay" onClick={onClose}>
       <div className="od-modal" onClick={e => e.stopPropagation()}>
 
+        {/* Top accent bar */}
+        <div className="od-top-bar" style={{ background: `linear-gradient(90deg, ${s.color}, transparent)` }} />
+
         {/* Header */}
         <div className="od-header">
-          <div>
-            <p className="od-order-id">{order.id}</p>
-            <p className="od-date">{order.date}</p>
-          </div>
-          <div className="od-header-right">
+          <div className="od-header-left">
             <span className="od-status-badge" style={{ background: s.bg, color: s.color }}>
-              <span className="od-status-dot" style={{ background: s.color }} />
-              {s.label}
+              <span>{s.icon}</span> {s.label}
             </span>
-            <button className="od-close" onClick={onClose}>✕</button>
+            <p className="od-order-id">{order.id}</p>
+            <p className="od-date">🗓 {order.date}</p>
           </div>
+          <button className="od-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
         {/* Timeline */}
-        <div className="od-timeline">
-          {["pending","confirmed","preparing","out_for_delivery","delivered"].map((step, i) => {
-            const st = STATUS[step];
-            const statusOrder = ["pending","confirmed","preparing","out_for_delivery","delivered","cancelled"];
-            const currentIdx = statusOrder.indexOf(order.status?.toLowerCase?.() || order.status);
-            const stepIdx = statusOrder.indexOf(step);
-            const isDone = currentIdx >= stepIdx && order.status !== "cancelled" && order.status !== "Cancelled";
-            return (
-              <div key={step} className={`od-tl-step ${isDone ? "done" : ""}`}>
-                <div className="od-tl-dot">{isDone ? "✓" : st.icon}</div>
-                <span className="od-tl-label">{st.label}</span>
-                {i < 4 && <div className={`od-tl-line ${isDone && currentIdx > stepIdx ? "done" : ""}`} />}
-              </div>
-            );
-          })}
-        </div>
+        {!isCancelled && (
+          <div className="od-timeline-wrap">
+            <div className="od-timeline">
+              {TIMELINE_STEPS.map((step, i) => {
+                const st = STATUS[step];
+                const stepIdx = STATUS_ORDER.indexOf(step);
+                const isDone = !isCancelled && currentIdx >= stepIdx;
+                const isActive = currentIdx === stepIdx;
+                return (
+                  <div key={step} className="od-tl-step">
+                    <div className={`od-tl-dot ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
+                      {isDone ? "✓" : st.icon}
+                    </div>
+                    {i < TIMELINE_STEPS.length - 1 && (
+                      <div className={`od-tl-line ${isDone && currentIdx > stepIdx ? "done" : ""}`} />
+                    )}
+                    <span className={`od-tl-label ${isDone ? "done" : ""}`}>{st.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Items */}
         <div className="od-section-label">🛍️ Items Ordered</div>
         <div className="od-items">
           {order.items.map((item, i) => (
             <div className="od-item" key={i}>
-              {item.img && <img src={item.img} alt={item.name} className="od-item-img" />}
+              {item.img
+                ? <img src={item.img} alt={item.name} className="od-item-img" />
+                : <div className="od-item-img od-item-emoji">{item.image || "🍽️"}</div>
+              }
               <div className="od-item-info">
                 <span className="od-item-name">{item.name}</span>
-                <span className="od-item-qty">x{item.qty}</span>
+                <span className="od-item-qty">Qty: {item.qty}</span>
               </div>
-              <span className="od-item-price">₹{item.price * item.qty}</span>
+              <span className="od-item-price">₹{(item.price * item.qty).toLocaleString()}</span>
             </div>
           ))}
         </div>
 
-        {/* Delivery address */}
+        {/* Address */}
         {order.deliveryAddress && (
           <>
             <div className="od-section-label">📍 Delivery Address</div>
@@ -105,21 +125,25 @@ function OrderDetailModal({ order, onClose, onReorder, onCancel }) {
         {/* Summary */}
         <div className="od-summary">
           <div className="od-summary-row">
-            <span>Payment</span>
+            <span>Payment Method</span>
             <span>{PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod || "—"}</span>
           </div>
           <div className="od-summary-row od-total-row">
             <span>Total Paid</span>
-            <span className="od-total-val">₹{order.total}</span>
+            <span className="od-total-val">₹{(order.total || 0).toLocaleString()}</span>
           </div>
         </div>
 
         {/* Actions */}
         <div className="od-actions">
           {canCancel && (
-            <button className="od-cancel-btn" onClick={() => onCancel(order.id)}>Cancel Order</button>
+            <button className="od-cancel-btn" onClick={() => onCancel(order.id)}>
+              ✕ Cancel Order
+            </button>
           )}
-          <button className="od-reorder-btn" onClick={() => onReorder(order)}>🔄 Reorder</button>
+          <button className="od-reorder-btn" onClick={() => onReorder(order)}>
+            🔄 Reorder
+          </button>
           <button className="od-close-btn" onClick={onClose}>Close</button>
         </div>
 
@@ -129,57 +153,109 @@ function OrderDetailModal({ order, onClose, onReorder, onCancel }) {
   );
 }
 
-// ── Main Component ────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// Main Orders Page
+// ─────────────────────────────────────────────
 export default function Orders() {
-  const [orders,       setOrders]       = useState([]);
-  const [filter,       setFilter]       = useState("All");
-  const [detailOrder,  setDetailOrder]  = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [filter, setFilter] = useState("All");
+  const [detailOrder, setDetailOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  // Load from localStorage
+  // Fetch orders from backend
   useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
     try {
-      const saved = JSON.parse(localStorage.getItem("orders") || "[]");
-      setOrders(saved);
-    } catch { setOrders([]); }
-  }, []);
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        toast.error("Please login to view orders");
+        navigate("/login");
+        return;
+      }
 
-  useGSAP(() => {
-    gsap.fromTo(".orders-hero-content > *",
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power3.out", delay: 0.2 }
-    );
-  }, []);
+      const response = await axios.get(`${API_URL}/orders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-  useEffect(() => {
-    if (orders.length > 0) {
-      gsap.fromTo(".order-card",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: "power3.out" }
-      );
+      // Transform backend data to match frontend format
+      const transformedOrders = response.data.orders.map(order => ({
+        id: order._id,
+        items: order.items.map(item => ({
+          name: item.name,
+          img: item.image,
+          image: item.image,
+          price: item.price,
+          qty: item.qty
+        })),
+        total: order.totalAmount,
+        status: order.status,
+        date: new Date(order.createdAt).toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        }),
+        paymentMethod: order.paymentMethod,
+        deliveryAddress: order.deliveryAddress
+      }));
+
+      setOrders(transformedOrders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      if (error.response?.status === 401) {
+        toast.error("Please login to view orders");
+        navigate("/login");
+      } else {
+        toast.error("Failed to load orders");
+      }
+    } finally {
+      setLoading(false);
     }
-  }, [orders, filter]);
-
-  // Filter
-  const filtered = orders.filter(o => {
-    if (filter === "All") return true;
-    const s = STATUS[o.status];
-    return s?.label?.toLowerCase() === filter.toLowerCase();
-  });
-
-  // Cancel order
-  const handleCancel = (id) => {
-    const updated = orders.map(o =>
-      o.id === id ? { ...o, status: "cancelled" } : o
-    );
-    setOrders(updated);
-    localStorage.setItem("orders", JSON.stringify(updated));
-    setDetailOrder(null);
-    toast.success("Order cancelled");
   };
 
-  // Reorder
+  useGSAP(() => {
+    gsap.fromTo(".orders-hero-content",
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", delay: 0.2 }
+    );
+  }, []);
+
+  useEffect(() => {
+    gsap.fromTo(".order-card",
+      { opacity: 0, y: 24 },
+      { opacity: 1, y: 0, duration: 0.45, stagger: 0.08, ease: "power3.out" }
+    );
+  }, [orders, filter]);
+
+  const filtered = orders.filter(o => {
+    if (filter === "All") return true;
+    return STATUS[o.status]?.label?.toLowerCase() === filter.toLowerCase();
+  });
+
+  const handleCancel = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`${API_URL}/orders/${id}/cancel`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local state
+      const updated = orders.map(o => o.id === id ? { ...o, status: "cancelled" } : o);
+      setOrders(updated);
+      setDetailOrder(null);
+      toast.success("Order cancelled successfully");
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      toast.error(error.response?.data?.message || "Failed to cancel order");
+    }
+  };
+
   const handleReorder = (order) => {
     order.items.forEach(item => addToCart(item));
     setDetailOrder(null);
@@ -187,133 +263,119 @@ export default function Orders() {
     navigate("/cart");
   };
 
-  const getStatus = (o) => STATUS[o.status] || STATUS.pending;
+  const totalSpent = orders.reduce((s, o) => s + (o.total || 0), 0);
+  const deliveredCount = orders.filter(o => ["delivered", "Delivered"].includes(o.status)).length;
 
   return (
     <div className="orders-page">
       <Navbar />
 
-      {/* ── Hero ── */}
+      {/* ── HERO ── */}
       <section className="orders-hero">
-        <div className="orders-hero-bg" />
+        <div className="orders-hero-glow" />
         <div className="orders-hero-content">
-          <p className="section-tag">My Orders</p>
-          <h1 className="orders-title">Order <span className="text-orange">History</span></h1>
-          <p className="orders-sub">{orders.length} order{orders.length !== 1 ? "s" : ""} placed so far</p>
+          <div className="orders-hero-left">
+            <span className="orders-hero-tag">📦 My Orders</span>
+            <h1 className="orders-title">
+              Order <span className="text-orange">History</span>
+            </h1>
+            <p className="orders-sub">
+              {orders.length > 0
+                ? `${orders.length} order${orders.length !== 1 ? "s" : ""} placed so far`
+                : "Your orders will appear here"}
+            </p>
+          </div>
+
+          {orders.length > 0 && null}
         </div>
       </section>
 
-      {/* ── Filter Tabs ── */}
+      {/* ── FILTERS ── */}
       {orders.length > 0 && (
-        <div className="orders-filters">
-          {FILTERS.map(f => (
-            <button
-              key={f}
-              className={`orders-filter-btn ${filter === f ? "active" : ""}`}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-              {f !== "All" && (
-                <span className="orders-filter-count">
-                  {orders.filter(o => STATUS[o.status]?.label?.toLowerCase() === f.toLowerCase()).length}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="orders-filters-wrap">
+          <div className="orders-filters">
+            {FILTERS.map(f => {
+              const count = f === "All"
+                ? orders.length
+                : orders.filter(o => STATUS[o.status]?.label?.toLowerCase() === f.toLowerCase()).length;
+              return (
+                <button
+                  key={f}
+                  className={`orders-filter-btn ${filter === f ? "active" : ""}`}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                  <span className="orders-filter-count">{count}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* ── Orders Body ── */}
+      {/* ── BODY ── */}
       <section className="orders-body">
-        {orders.length === 0 ? (
+        {loading ? (
           <div className="orders-empty">
-            <div className="orders-empty-icon">📦</div>
-            <h3>No orders yet</h3>
-            <p>Your order history will appear here once you place an order</p>
-            <Link to="/menu" className="btn-primary">Browse Menu →</Link>
+            <div className="orders-empty-icon">⏳</div>
+            <h3 className="orders-empty-title">Loading orders...</h3>
+          </div>
+        ) : orders.length === 0 ? (
+          /* Empty state */
+          <div className="orders-empty">
+            <div className="orders-empty-blob" />
+            <div className="orders-empty-icon">🛵</div>
+            <h3 className="orders-empty-title">No orders yet</h3>
+            <p className="orders-empty-sub">
+              Looks like you haven't ordered anything yet.<br />
+              Explore our menu and place your first order!
+            </p>
+            <Link to="/menu" className="orders-empty-btn">
+              Browse Menu 🍽️
+            </Link>
           </div>
         ) : filtered.length === 0 ? (
           <div className="orders-empty">
             <div className="orders-empty-icon">🔍</div>
-            <h3>No {filter} orders</h3>
-            <p>You don't have any {filter.toLowerCase()} orders</p>
+            <h3 className="orders-empty-title">No {filter} orders</h3>
+            <p className="orders-empty-sub">You don't have any {filter.toLowerCase()} orders yet.</p>
           </div>
         ) : (
           <div className="orders-list">
             {filtered.map((order, i) => {
-              const s = getStatus(order);
+              const s = STATUS[order.status] || STATUS.pending;
               return (
                 <div className="order-card" key={order.id || i}>
+                  <div className="order-card-body">
 
-                  {/* Left accent bar */}
-                  <div className="order-accent" style={{ background: s.color }} />
-
-                  <div className="order-card-inner">
-                    {/* ── Top row ── */}
-                    <div className="order-top">
-                      <div className="order-id-block">
+                    {/* Left: image + info */}
+                    <div className="order-left">
+                      {order.items[0]?.img
+                        ? <img src={order.items[0].img} alt={order.items[0].name} className="order-thumb" />
+                        : <div className="order-thumb order-thumb-emoji">{order.items[0]?.image || "🍽️"}</div>
+                      }
+                      <div className="order-info">
                         <span className="order-id">{order.id}</span>
-                        <span className="order-date">📅 {order.date}</span>
+                        <span className="order-items-text">
+                          {order.items.map(i => i.name).join(", ")}
+                        </span>
+                        <span className="order-date">{order.date}</span>
                       </div>
+                    </div>
+
+                    {/* Right: status + price + actions */}
+                    <div className="order-right">
                       <span className="order-status-pill" style={{ background: s.bg, color: s.color }}>
-                        <span className="order-status-dot" style={{ background: s.color }} />
-                        {s.label}
+                        {s.icon} {s.label}
                       </span>
-                    </div>
-
-                    {/* ── Items preview ── */}
-                    <div className="order-items-preview">
-                      <div className="order-imgs">
-                        {order.items.slice(0, 4).map((item, j) => (
-                          item.img && (
-                            <img
-                              key={j}
-                              src={item.img}
-                              alt={item.name}
-                              className="order-preview-img"
-                              style={{ zIndex: order.items.length - j }}
-                            />
-                          )
-                        ))}
-                        {order.items.length > 4 && (
-                          <div className="order-preview-more">+{order.items.length - 4}</div>
-                        )}
-                      </div>
-                      <div className="order-items-names">
-                        {order.items.slice(0, 2).map((item, j) => (
-                          <span key={j} className="order-item-chip">
-                            {item.name} <em>×{item.qty}</em>
-                          </span>
-                        ))}
-                        {order.items.length > 2 && (
-                          <span className="order-item-chip order-item-more">
-                            +{order.items.length - 2} more
-                          </span>
-                        )}
+                      <span className="order-price">₹{(order.total || 0).toLocaleString()}</span>
+                      <div className="order-action-btns">
+                        <button className="order-btn-reorder" onClick={() => handleReorder(order)}>Reorder</button>
+                        <button className="order-btn-detail" onClick={() => setDetailOrder(order)}>Details</button>
                       </div>
                     </div>
 
-                    {/* ── Bottom row ── */}
-                    <div className="order-bottom">
-                      <div className="order-meta">
-                        <span className="order-total-val">₹{order.total}</span>
-                        {order.paymentMethod && (
-                          <span className="order-pay-tag">
-                            {PAYMENT_LABEL[order.paymentMethod] || order.paymentMethod}
-                          </span>
-                        )}
-                      </div>
-                      <div className="order-btns">
-                        <button className="order-reorder-btn" onClick={() => handleReorder(order)}>
-                          🔄 Reorder
-                        </button>
-                        <button className="order-detail-btn" onClick={() => setDetailOrder(order)}>
-                          View Details
-                        </button>
-                      </div>
-                    </div>
                   </div>
-
                 </div>
               );
             })}
@@ -321,7 +383,6 @@ export default function Orders() {
         )}
       </section>
 
-      {/* ── Detail Modal ── */}
       {detailOrder && (
         <OrderDetailModal
           order={detailOrder}

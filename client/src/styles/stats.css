@@ -1,7 +1,7 @@
 /* ===== STATS SECTION ===== */
 .stats-section {
   background: #0f0f0f;
-  padding: 5rem 4rem;
+  padding: 2rem 4rem;
 }
 
 .stats-grid {
@@ -81,7 +81,7 @@
 
 @media (max-width: 768px) {
   .stats-section {
-    padding: 4rem 1.5rem;
+    padding: 2.5rem 1.5rem;
   }
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);

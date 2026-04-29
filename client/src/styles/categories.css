@@ -1,6 +1,6 @@
 /* ===== CATEGORIES SECTION ===== */
 .categories-section {
-  padding: 4rem 4rem 3rem;
+  padding: 2rem 4rem 1.5rem;
   background: #0a0a0a;
 }
 
@@ -125,7 +125,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .categories-section { padding: 3rem 1.5rem 2rem; }
+  .categories-section { padding: 2rem 1.5rem 1.5rem; }
   .category-card { min-width: 100px; }
   .category-img-wrap { height: 90px; }
 }

@@ -11,7 +11,7 @@
 .p-bg-canvas {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
@@ -22,7 +22,7 @@
   width: 700px; height: 400px;
   background: radial-gradient(ellipse at center top, rgba(255,107,0,0.07) 0%, transparent 70%);
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 .pp > *:not(.p-bg-canvas):not(.p-glow):not(.crop-overlay) {
@@ -30,134 +30,146 @@
   z-index: 1;
 }
 
-/* ── Header ── */
-.p-header {
-  display: flex;
-  align-items: center;
-  gap: 1.4rem;
-  max-width: 720px;
+/* ── Layout: 2-column ── */
+.p-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.5rem;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 6rem 2rem 1.5rem;
+  padding: 5.5rem 2rem 4rem;
+  align-items: start;
+  position: relative;
+  z-index: 1;
 }
 
-/* ── Avatar ── */
+/* ── LEFT SIDEBAR ── */
+.p-sidebar {
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 1.8rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  position: sticky;
+  top: 5rem;
+}
+
+/* ── Header (old, now inside sidebar) ── */
+.p-header { display: none; }
+
+/* Avatar centered in sidebar */
 .p-avatar-wrap { position: relative; flex-shrink: 0; }
 
 .p-avatar {
-  width: 84px; height: 84px;
+  width: 90px; height: 90px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff6b00, #ff3d00);
-  color: #fff; font-size: 1.7rem; font-weight: 700;
+  color: #fff; font-size: 1.8rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 6px 24px rgba(255,107,0,0.4);
-  cursor: pointer;
-  overflow: hidden;
-  position: relative;
+  cursor: pointer; overflow: hidden; position: relative;
   transition: box-shadow 0.3s;
 }
 .p-avatar:hover { box-shadow: 0 8px 32px rgba(255,107,0,0.6); }
-
-.p-avatar-img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-/* Camera overlay on hover */
+.p-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .p-avatar-edit-overlay {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
+  position: absolute; inset: 0; border-radius: 50%;
   background: rgba(0,0,0,0.55);
   display: flex; align-items: center; justify-content: center;
-  opacity: 0;
-  transition: opacity 0.25s;
+  opacity: 0; transition: opacity 0.25s;
 }
 .p-avatar:hover .p-avatar-edit-overlay { opacity: 1; }
 .p-avatar-cam { font-size: 1.3rem; }
-
 .p-avatar-ring {
-  position: absolute; inset: -5px;
-  border-radius: 50%;
+  position: absolute; inset: -5px; border-radius: 50%;
   border: 1.5px dashed rgba(255,107,0,0.35);
-  animation: pring 10s linear infinite;
-  pointer-events: none;
+  animation: pring 10s linear infinite; pointer-events: none;
 }
 @keyframes pring { to { transform: rotate(360deg); } }
 
 .p-name {
   font-family: "Playfair Display", serif;
-  font-size: 1.6rem; font-weight: 700; color: #fff;
-  margin: 0 0 0.4rem; text-transform: capitalize;
-  opacity: 0;
+  font-size: 1.2rem; font-weight: 700; color: #fff;
+  margin: 0; text-align: center; text-transform: capitalize;
 }
 .p-tags {
-  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
-  opacity: 0;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.35rem; flex-wrap: wrap; width: 100%;
 }
 .p-tag {
-  font-size: 0.73rem; color: rgba(255,255,255,0.5);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 0.18rem 0.6rem; border-radius: 99px;
+  font-size: 0.7rem; color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  padding: 0.18rem 0.65rem; border-radius: 99px;
+  text-align: center; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.p-tag-o {
-  color: #ff6b00;
-  background: rgba(255,107,0,0.1);
-  border-color: rgba(255,107,0,0.25);
-}
+.p-tag-o { color: #ff6b00; background: rgba(255,107,0,0.1); border-color: rgba(255,107,0,0.25); }
 
-/* ── Stats ── */
+/* Stats in sidebar */
 .p-stats {
-  display: flex;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  width: 100%;
 }
 .p-stat {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.12rem;
-  text-decoration: none; padding: 0.7rem 0.4rem; border-radius: 10px;
-  transition: background 0.2s; opacity: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
+  text-decoration: none; padding: 0.6rem 0.4rem; border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.2s, border-color 0.2s;
 }
-.p-stat:hover { background: rgba(255,255,255,0.05); }
-.p-si  { font-size: 1.2rem; }
-.p-sv  { font-size: 1.25rem; font-weight: 700; color: #ff6b00; }
-.p-sl  { font-size: 0.68rem; color: rgba(255,255,255,0.38); }
+.p-stat:hover { background: rgba(255,107,0,0.08); border-color: rgba(255,107,0,0.2); }
+.p-si  { font-size: 1rem; }
+.p-sv  { font-size: 1.1rem; font-weight: 700; color: #ff6b00; }
+.p-sl  { font-size: 0.62rem; color: rgba(255,255,255,0.35); }
 
-.p-hr {
-  max-width: 720px; margin: 0.8rem auto 0;
-  padding: 0 2rem; height: 1px;
-  background: rgba(255,255,255,0.08);
+/* Sidebar nav */
+.p-sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 0.8rem;
+  margin-top: 0.2rem;
 }
-
-/* ── Tabs ── */
-.p-tabs {
-  display: flex; max-width: 720px;
-  margin: 0 auto; padding: 0 2rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  gap: 0.2rem;
-}
-.p-tab {
+.p-sidenav-btn {
+  display: flex; align-items: center; gap: 0.7rem;
   background: none; border: none;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.45);
   font-size: 0.82rem; font-weight: 600;
   font-family: "Poppins", sans-serif;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.2s, border-color 0.2s;
-  white-space: nowrap;
+  padding: 0.6rem 0.8rem; border-radius: 10px;
+  cursor: pointer; text-align: left; width: 100%;
+  transition: background 0.2s, color 0.2s;
 }
-.p-tab:hover { color: rgba(255,255,255,0.75); }
-.p-tab.active { color: #ff6b00; border-bottom-color: #ff6b00; }
+.p-sidenav-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.p-sidenav-btn.active {
+  background: rgba(255,107,0,0.1);
+  color: #ff6b00;
+  border: 1px solid rgba(255,107,0,0.2);
+}
 
-/* ── Content ── */
-.p-content {
-  max-width: 720px; margin: 0 auto;
-  padding: 1.2rem 2rem 5rem;
-  opacity: 0;
+/* ── RIGHT MAIN ── */
+.p-main {
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  height: fit-content;
 }
+
+.p-content {
+  padding: 1.5rem 1.8rem 2rem;
+}
+
+/* Hide old elements */
+.p-hr, .p-tabs { display: none; }
 
 .p-row-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -462,10 +474,20 @@
 .addr-default-row input { accent-color: #ff6b00; cursor: pointer; }
 
 /* ── Responsive ── */
+@media (max-width: 900px) {
+  .p-layout {
+    grid-template-columns: 1fr;
+    padding: 5rem 1.2rem 3rem;
+  }
+  .p-sidebar { position: static; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .p-sidenav { flex-direction: row; border-top: none; padding-top: 0; border-left: 1px solid rgba(255,255,255,0.06); padding-left: 0.8rem; }
+  .p-stats { grid-template-columns: repeat(4,1fr); }
+}
 @media (max-width: 600px) {
-  .p-header { padding: 5rem 1rem 1.2rem; }
-  .p-stats, .p-hr, .p-tabs, .p-content { padding-left: 1rem; padding-right: 1rem; }
-  .p-avatar { width: 72px; height: 72px; font-size: 1.4rem; }
+  .p-layout { padding: 4.5rem 1rem 3rem; gap: 1rem; }
+  .p-stats { grid-template-columns: repeat(2,1fr); }
+  .p-sidenav { flex-direction: column; border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.8rem; }
+  .p-content { padding: 1.2rem 1.2rem 2rem; }
   .p-field { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
   .p-fl { min-width: unset; }
   .p-fv { text-align: left; }
@@ -473,5 +495,4 @@
   .crop-modal { padding: 1.1rem; }
   .crop-stage { width: 220px; height: 220px; }
   .crop-canvas { width: 220px; height: 220px; }
-  .p-tab { font-size: 0.75rem; padding: 0.7rem 0.7rem; }
 }

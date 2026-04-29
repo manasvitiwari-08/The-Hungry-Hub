@@ -1,7 +1,7 @@
 /* ===== MARQUEE TICKER ===== */
 .marquee-section {
   background: #0f0f0f;
-  padding: 1.5rem 0;
+  padding: 1rem 0;
   overflow: hidden;
   position: relative;
 }

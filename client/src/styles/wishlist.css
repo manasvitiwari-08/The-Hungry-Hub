@@ -2,14 +2,14 @@
 .wishlist-page { background:#0a0a0a; color:#fff; min-height:100vh; font-family:"Poppins",sans-serif; }
 .text-orange { background:linear-gradient(135deg,#ff6b00,#ff3d00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 
-.wishlist-hero { position:relative; padding:8rem 4rem 4rem; text-align:center; overflow:hidden; }
-.wishlist-hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse at center top,rgba(255,107,0,0.1) 0%,transparent 65%); pointer-events:none; }
-.wishlist-hero-content { position:relative; z-index:1; }
-.section-tag { display:inline-block; color:#ff6b00; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:3px; margin-bottom:0.8rem; background:rgba(255,107,0,0.1); border:1px solid rgba(255,107,0,0.25); padding:0.3rem 1rem; border-radius:99px; }
-.wishlist-title { font-family:"Playfair Display",serif; font-size:clamp(2rem,4vw,3rem); font-weight:700; color:#fff; margin:0 0 0.6rem; }
-.wishlist-sub { color:rgba(255,255,255,0.5); font-size:0.95rem; margin:0; }
+.wishlist-hero { position:relative; padding:5.5rem 2rem 1.5rem; overflow:hidden; }
+.wishlist-hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse 60% 80% at 0% 50%,rgba(255,107,0,0.1) 0%,transparent 65%); pointer-events:none; }
+.wishlist-hero-content { position:relative; z-index:1; max-width:1200px; margin:0 auto; display:flex; flex-direction:column; gap:0.4rem; align-items:flex-start; }
+.section-tag { display:inline-flex; align-items:center; gap:0.4rem; color:#ff6b00; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:2.5px; background:rgba(255,107,0,0.1); border:1px solid rgba(255,107,0,0.25); padding:0.3rem 1rem; border-radius:99px; }
+.wishlist-title { font-family:"Playfair Display",serif; font-size:clamp(2.2rem,4.5vw,3.5rem); font-weight:700; color:#fff; margin:0; line-height:1.15; }
+.wishlist-sub { color:rgba(255,255,255,0.4); font-size:0.9rem; margin:0; }
 
-.wishlist-body { padding:2rem 4rem 6rem; max-width:1200px; margin:0 auto; }
+.wishlist-body { padding:1rem 2rem 4rem; max-width:1200px; margin:0 auto; }
 
 /* Grid */
 .wl-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; }

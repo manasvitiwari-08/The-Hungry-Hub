@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
@@ -16,6 +17,7 @@ function App() {
   return (
     <BrowserRouter>
       <CartProvider>
+        <WishlistProvider>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -41,6 +43,7 @@ function App() {
           <Route path="/cart"     element={<Cart />} />
           <Route path="/wishlist" element={<Wishlist />} />
         </Routes>
+        </WishlistProvider>
       </CartProvider>
     </BrowserRouter>
   );

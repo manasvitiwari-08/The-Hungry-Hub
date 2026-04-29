@@ -1,0 +1,257 @@
+import { useState, useEffect } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { Link } from "react-router-dom";
+import "../styles/dashboard.css";
+
+const RECENT_ORDERS = [
+  { id: "ORD-001", customer: "Rahul Kumar", items: 3, amount: 899, status: "pending", time: "5 mins ago" },
+  { id: "ORD-002", customer: "Priya Sharma", items: 2, amount: 649, status: "completed", time: "15 mins ago" },
+  { id: "ORD-003", customer: "Amit Singh", items: 5, amount: 1299, status: "processing", time: "25 mins ago" },
+  { id: "ORD-004", customer: "Sneha Patel", items: 4, amount: 1099, status: "pending", time: "35 mins ago" },
+  { id: "ORD-005", customer: "Vikram Rao", items: 2, amount: 549, status: "completed", time: "1 hour ago" },
+];
+
+const TOP_ITEMS = [
+  { name: "Classic Burger", orders: 45, revenue: 13455, trend: "+12%" },
+  { name: "Margherita Pizza", orders: 38, revenue: 13262, trend: "+8%" },
+  { name: "Butter Chicken", orders: 32, revenue: 9568, trend: "+15%" },
+  { name: "Chocolate Cake", orders: 28, revenue: 4172, trend: "+5%" },
+];
+
+export default function Dashboard() {
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    totalRevenue: 0,
+    totalUsers: 0,
+    todayOrders: 0,
+    todayRevenue: 0,
+  });
+
+  useEffect(() => {
+    // TODO: Fetch stats from API
+    setStats({
+      totalOrders: 156,
+      pendingOrders: 12,
+      totalRevenue: 45680,
+      totalUsers: 89,
+      todayOrders: 24,
+      todayRevenue: 8450,
+    });
+  }, []);
+
+  useGSAP(() => {
+    // Animate stat cards
+    gsap.fromTo(
+      ".stat-card",
+      { opacity: 0, y: 30, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.4)" }
+    );
+
+    // Animate sections
+    gsap.fromTo(
+      ".dashboard-section",
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: 0.6, stagger: 0.15, ease: "power3.out", delay: 0.3 }
+    );
+
+    // Number counter animation
+    const counters = document.querySelectorAll(".stat-number");
+    counters.forEach((counter) => {
+      const target = parseInt(counter.getAttribute("data-target"));
+      gsap.to(counter, {
+        innerText: target,
+        duration: 1.5,
+        ease: "power2.out",
+        snap: { innerText: 1 },
+        onUpdate: function () {
+          counter.innerText = Math.ceil(counter.innerText).toLocaleString();
+        },
+      });
+    });
+  }, []);
+
+  return (
+    <div className="dashboard">
+      {/* Header */}
+      <div className="dashboard-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p className="dashboard-subtitle">Welcome back, Admin! 👋</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-refresh">🔄 Refresh</button>
+          <button className="btn-export">📊 Export</button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        <div className="stat-card stat-orders">
+          <div className="stat-content">
+            <div className="stat-icon-wrapper">
+              <div className="stat-icon">📦</div>
+            </div>
+            <div className="stat-details">
+              <p className="stat-label">Total Orders</p>
+              <h3 className="stat-number" data-target={stats.totalOrders}>0</h3>
+              <span className="stat-change positive">+12% from last month</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card stat-pending">
+          <div className="stat-content">
+            <div className="stat-icon-wrapper">
+              <div className="stat-icon">⏳</div>
+            </div>
+            <div className="stat-details">
+              <p className="stat-label">Pending Orders</p>
+              <h3 className="stat-number" data-target={stats.pendingOrders}>0</h3>
+              <span className="stat-change warning">Needs attention</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card stat-revenue">
+          <div className="stat-content">
+            <div className="stat-icon-wrapper">
+              <div className="stat-icon">💰</div>
+            </div>
+            <div className="stat-details">
+              <p className="stat-label">Total Revenue</p>
+              <h3 className="stat-number">₹{stats.totalRevenue.toLocaleString()}</h3>
+              <span className="stat-change positive">+18% from last month</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card stat-users">
+          <div className="stat-content">
+            <div className="stat-icon-wrapper">
+              <div className="stat-icon">👥</div>
+            </div>
+            <div className="stat-details">
+              <p className="stat-label">Total Users</p>
+              <h3 className="stat-number" data-target={stats.totalUsers}>0</h3>
+              <span className="stat-change positive">+8% from last month</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Today's Stats */}
+      <div className="today-stats dashboard-section">
+        <h2 className="section-title">📅 Today's Performance</h2>
+        <div className="today-grid">
+          <div className="today-card">
+            <div className="today-icon">🛒</div>
+            <div className="today-info">
+              <h4>{stats.todayOrders}</h4>
+              <p>Orders Today</p>
+            </div>
+          </div>
+          <div className="today-card">
+            <div className="today-icon">💵</div>
+            <div className="today-info">
+              <h4>₹{stats.todayRevenue.toLocaleString()}</h4>
+              <p>Revenue Today</p>
+            </div>
+          </div>
+          <div className="today-card">
+            <div className="today-icon">⭐</div>
+            <div className="today-info">
+              <h4>4.8</h4>
+              <p>Avg Rating</p>
+            </div>
+          </div>
+          <div className="today-card">
+            <div className="today-icon">⚡</div>
+            <div className="today-info">
+              <h4>28 min</h4>
+              <p>Avg Delivery</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Two Column Layout */}
+      <div className="dashboard-grid">
+        {/* Recent Orders */}
+        <div className="dashboard-section recent-orders-section">
+          <div className="section-header">
+            <h2 className="section-title">📦 Recent Orders</h2>
+            <Link to="/orders" className="view-all-link">View All →</Link>
+          </div>
+          <div className="orders-list">
+            {RECENT_ORDERS.map((order) => (
+              <div key={order.id} className="order-item">
+                <div className="order-left">
+                  <div className="order-id">{order.id}</div>
+                  <div className="order-customer">
+                    <span className="customer-name">{order.customer}</span>
+                    <span className="order-time">{order.time}</span>
+                  </div>
+                </div>
+                <div className="order-right">
+                  <div className="order-amount">₹{order.amount}</div>
+                  <span className={`status-badge status-${order.status}`}>
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Selling Items */}
+        <div className="dashboard-section top-items-section">
+          <div className="section-header">
+            <h2 className="section-title">🔥 Top Selling Items</h2>
+            <Link to="/menu" className="view-all-link">View Menu →</Link>
+          </div>
+          <div className="top-items-list">
+            {TOP_ITEMS.map((item, index) => (
+              <div key={index} className="top-item">
+                <div className="item-rank">#{index + 1}</div>
+                <div className="item-details">
+                  <h4 className="item-name">{item.name}</h4>
+                  <p className="item-stats">{item.orders} orders • ₹{item.revenue.toLocaleString()}</p>
+                </div>
+                <div className="item-trend positive">{item.trend}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="dashboard-section quick-actions">
+        <h2 className="section-title">⚡ Quick Actions</h2>
+        <div className="actions-grid">
+          <Link to="/orders" className="action-card">
+            <div className="action-icon">📦</div>
+            <h4>View Orders</h4>
+            <p>Manage pending orders</p>
+          </Link>
+          <Link to="/menu" className="action-card">
+            <div className="action-icon">🍔</div>
+            <h4>Add Menu Item</h4>
+            <p>Update your menu</p>
+          </Link>
+          <button className="action-card">
+            <div className="action-icon">📊</div>
+            <h4>View Reports</h4>
+            <p>Analytics & insights</p>
+          </button>
+          <button className="action-card">
+            <div className="action-icon">⚙️</div>
+            <h4>Settings</h4>
+            <p>Configure your panel</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
