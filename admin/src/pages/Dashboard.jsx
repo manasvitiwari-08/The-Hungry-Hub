@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import { Link } from "react-router-dom";
 import "../styles/dashboard.css";
 
@@ -41,37 +39,6 @@ export default function Dashboard() {
     });
   }, []);
 
-  useGSAP(() => {
-    // Animate stat cards
-    gsap.fromTo(
-      ".stat-card",
-      { opacity: 0, y: 30, scale: 0.9 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.4)" }
-    );
-
-    // Animate sections
-    gsap.fromTo(
-      ".dashboard-section",
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.6, stagger: 0.15, ease: "power3.out", delay: 0.3 }
-    );
-
-    // Number counter animation
-    const counters = document.querySelectorAll(".stat-number");
-    counters.forEach((counter) => {
-      const target = parseInt(counter.getAttribute("data-target"));
-      gsap.to(counter, {
-        innerText: target,
-        duration: 1.5,
-        ease: "power2.out",
-        snap: { innerText: 1 },
-        onUpdate: function () {
-          counter.innerText = Math.ceil(counter.innerText).toLocaleString();
-        },
-      });
-    });
-  }, []);
-
   return (
     <div className="dashboard">
       {/* Header */}
@@ -92,7 +59,7 @@ export default function Dashboard() {
           <p className="stat-label">Total Orders</p>
           <div className="stat-main">
             <div className="stat-icon">📦</div>
-            <h3 className="stat-number" data-target={stats.totalOrders}>0</h3>
+            <h3 className="stat-number">{stats.totalOrders}</h3>
           </div>
           <span className="stat-change positive">+12% from last month</span>
         </div>
@@ -101,7 +68,7 @@ export default function Dashboard() {
           <p className="stat-label">Pending Orders</p>
           <div className="stat-main">
             <div className="stat-icon">⏳</div>
-            <h3 className="stat-number" data-target={stats.pendingOrders}>0</h3>
+            <h3 className="stat-number">{stats.pendingOrders}</h3>
           </div>
           <span className="stat-change warning">Needs attention</span>
         </div>
@@ -119,7 +86,7 @@ export default function Dashboard() {
           <p className="stat-label">Total Users</p>
           <div className="stat-main">
             <div className="stat-icon">👥</div>
-            <h3 className="stat-number" data-target={stats.totalUsers}>0</h3>
+            <h3 className="stat-number">{stats.totalUsers}</h3>
           </div>
           <span className="stat-change positive">+8% from last month</span>
         </div>

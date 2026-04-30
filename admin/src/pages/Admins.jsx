@@ -245,7 +245,6 @@ export default function Admins() {
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 >
                   <option value="admin">Admin</option>
-                  <option value="super_admin">Super Admin</option>
                 </select>
               </div>
 

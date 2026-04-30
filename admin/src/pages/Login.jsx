@@ -1,26 +1,15 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import toast from "react-hot-toast";
 import AuthLeft from "../components/AuthLeft";
 import "../styles/auth.css";
 
 export default function Login() {
-  const formRef = useRef(null);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
-
-  useGSAP(() => {
-    gsap.fromTo(
-      formRef.current,
-      { opacity: 0, x: 60 },
-      { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }
-    );
-  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -81,7 +70,7 @@ export default function Login() {
       <AuthLeft />
 
       {/* Right Side — Login Form */}
-      <div className="auth-right" ref={formRef}>
+      <div className="auth-right">
         <div className="auth-form-box">
           <h2 className="auth-title">Admin Login</h2>
           <p className="auth-subtitle">Sign in to access the control panel</p>

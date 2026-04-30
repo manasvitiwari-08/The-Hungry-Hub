@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import toast from "react-hot-toast";
 import axios from "axios";
 import "../styles/menu-management.css";

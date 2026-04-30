@@ -26,18 +26,23 @@ router.post("/admins", protect, restrictTo("super_admin"), async (req, res) => {
       return res.status(400).json({ message: "Name, email, and password are required" });
     }
 
+    // Prevent creating super_admin through API
+    if (role === "super_admin") {
+      return res.status(403).json({ message: "Cannot create super admin through API" });
+    }
+
     // Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    // Create new admin
+    // Create new admin (force role to be 'admin')
     const admin = await User.create({
       name,
       email,
       password,
-      role: role || "admin",
+      role: "admin",
       isVerified: true,
     });
 
@@ -63,7 +68,12 @@ router.put("/admins/:id", protect, restrictTo("super_admin"), async (req, res) =
     const updateData = {};
 
     if (name) updateData.name = name;
-    if (role) updateData.role = role;
+    
+    // Prevent changing role to super_admin
+    if (role && role !== "super_admin") {
+      updateData.role = role;
+    }
+    
     if (password) {
       // Password will be hashed by pre-save hook
       updateData.password = password;
