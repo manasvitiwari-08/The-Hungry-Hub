@@ -132,8 +132,8 @@ export default function Admins() {
     <div className="admins-page">
       <div className="page-header">
         <div>
-          <h1>Admin Management</h1>
-          <p>Manage admin users and their permissions</p>
+          <h1>Admins</h1>
+          <p>Manage admin users</p>
         </div>
         <button className="btn-add" onClick={() => setShowModal(true)}>
           Add Admin
@@ -142,7 +142,7 @@ export default function Admins() {
 
       <div className="admins-stats">
         <div className="stat-item">
-          <span className="stat-label">Total Admins</span>
+          <span className="stat-label">Admins</span>
           <span className="stat-value">{admins.filter(a => a.role === "admin").length}</span>
         </div>
         <div className="stat-item">
@@ -150,7 +150,7 @@ export default function Admins() {
           <span className="stat-value">{admins.filter(a => a.role === "super_admin").length}</span>
         </div>
         <div className="stat-item">
-          <span className="stat-label">Total Users</span>
+          <span className="stat-label">Total</span>
           <span className="stat-value">{admins.length}</span>
         </div>
       </div>
@@ -162,39 +162,36 @@ export default function Admins() {
           admins.map((admin) => (
             <div key={admin._id} className="admin-card">
               <div className="admin-avatar">
-                <img
-                  src={`https://ui-avatars.com/api/?name=${admin.name}&background=ff6b00&color=fff`}
-                  alt={admin.name}
-                />
+                {admin.name.charAt(0).toUpperCase()}
               </div>
               
               <div className="admin-info">
-                <h3>{admin.name}</h3>
+                <div className="admin-name-row">
+                  <h3>{admin.name}</h3>
+                  <span className={`role-badge ${admin.role}`}>
+                    {admin.role === "super_admin" ? "Super Admin" : "Admin"}
+                  </span>
+                </div>
                 <p>{admin.email}</p>
-                <span className={`role-badge ${admin.role}`}>
-                  {admin.role === "super_admin" ? "Super Admin" : "Admin"}
-                </span>
               </div>
 
               <div className="admin-meta">
-                <span>Joined: {new Date(admin.createdAt).toLocaleDateString()}</span>
+                <span>{new Date(admin.createdAt).toLocaleDateString()}</span>
                 <span className={admin.isVerified ? "verified" : "unverified"}>
                   {admin.isVerified ? "Verified" : "Unverified"}
                 </span>
               </div>
 
-              <div className="admin-actions">
-                {admin.role !== "super_admin" && (
-                  <>
-                    <button className="btn-edit" onClick={() => handleEdit(admin)}>
-                      Edit
-                    </button>
-                    <button className="btn-delete" onClick={() => handleDelete(admin._id)}>
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
+              {admin.role !== "super_admin" && (
+                <div className="admin-actions">
+                  <button className="btn-edit" onClick={() => handleEdit(admin)}>
+                    Edit
+                  </button>
+                  <button className="btn-delete" onClick={() => handleDelete(admin._id)}>
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}
@@ -204,7 +201,7 @@ export default function Admins() {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{editingAdmin ? "Edit Admin" : "Add New Admin"}</h2>
+              <h2>{editingAdmin ? "Edit Admin" : "Add Admin"}</h2>
               <button className="btn-close" onClick={closeModal}>×</button>
             </div>
 
@@ -238,16 +235,6 @@ export default function Admins() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Enter password"
                 />
-              </div>
-
-              <div className="form-group">
-                <label>Role</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                >
-                  <option value="admin">Admin</option>
-                </select>
               </div>
 
               <div className="form-actions">
