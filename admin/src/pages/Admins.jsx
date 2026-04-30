@@ -184,13 +184,15 @@ export default function Admins() {
               </div>
 
               <div className="admin-actions">
-                <button className="btn-edit" onClick={() => handleEdit(admin)}>
-                  Edit
-                </button>
                 {admin.role !== "super_admin" && (
-                  <button className="btn-delete" onClick={() => handleDelete(admin._id)}>
-                    Delete
-                  </button>
+                  <>
+                    <button className="btn-edit" onClick={() => handleEdit(admin)}>
+                      Edit
+                    </button>
+                    <button className="btn-delete" onClick={() => handleDelete(admin._id)}>
+                      Delete
+                    </button>
+                  </>
                 )}
               </div>
             </div>
