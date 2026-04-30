@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/Orders";
 import MenuManagement from "./pages/MenuManagement";
 import MenuItemForm from "./pages/MenuItemForm";
+import Admins from "./pages/Admins";
 import Settings from "./pages/Settings";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
@@ -100,6 +101,17 @@ function App() {
             <ProtectedRoute>
               <AdminLayout>
                 <MenuItemForm />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/admins"
+          element={
+            <ProtectedRoute>
+              <AdminLayout>
+                <Admins />
               </AdminLayout>
             </ProtectedRoute>
           }

@@ -86,89 +86,73 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <div className="stat-card stat-orders">
-          <div className="stat-content">
-            <div className="stat-icon-wrapper">
-              <div className="stat-icon">📦</div>
-            </div>
-            <div className="stat-details">
-              <p className="stat-label">Total Orders</p>
-              <h3 className="stat-number" data-target={stats.totalOrders}>0</h3>
-              <span className="stat-change positive">+12% from last month</span>
-            </div>
+      {/* Main Stats - Horizontal Row */}
+      <div className="stats-row">
+        <div className="stat-card">
+          <p className="stat-label">Total Orders</p>
+          <div className="stat-main">
+            <div className="stat-icon">📦</div>
+            <h3 className="stat-number" data-target={stats.totalOrders}>0</h3>
           </div>
+          <span className="stat-change positive">+12% from last month</span>
         </div>
 
-        <div className="stat-card stat-pending">
-          <div className="stat-content">
-            <div className="stat-icon-wrapper">
-              <div className="stat-icon">⏳</div>
-            </div>
-            <div className="stat-details">
-              <p className="stat-label">Pending Orders</p>
-              <h3 className="stat-number" data-target={stats.pendingOrders}>0</h3>
-              <span className="stat-change warning">Needs attention</span>
-            </div>
+        <div className="stat-card stat-highlight">
+          <p className="stat-label">Pending Orders</p>
+          <div className="stat-main">
+            <div className="stat-icon">⏳</div>
+            <h3 className="stat-number" data-target={stats.pendingOrders}>0</h3>
           </div>
+          <span className="stat-change warning">Needs attention</span>
         </div>
 
-        <div className="stat-card stat-revenue">
-          <div className="stat-content">
-            <div className="stat-icon-wrapper">
-              <div className="stat-icon">💰</div>
-            </div>
-            <div className="stat-details">
-              <p className="stat-label">Total Revenue</p>
-              <h3 className="stat-number">₹{stats.totalRevenue.toLocaleString()}</h3>
-              <span className="stat-change positive">+18% from last month</span>
-            </div>
+        <div className="stat-card">
+          <p className="stat-label">Total Revenue</p>
+          <div className="stat-main">
+            <div className="stat-icon">💰</div>
+            <h3 className="stat-number">₹{stats.totalRevenue.toLocaleString()}</h3>
           </div>
+          <span className="stat-change positive">+18% from last month</span>
         </div>
 
-        <div className="stat-card stat-users">
-          <div className="stat-content">
-            <div className="stat-icon-wrapper">
-              <div className="stat-icon">👥</div>
-            </div>
-            <div className="stat-details">
-              <p className="stat-label">Total Users</p>
-              <h3 className="stat-number" data-target={stats.totalUsers}>0</h3>
-              <span className="stat-change positive">+8% from last month</span>
-            </div>
+        <div className="stat-card">
+          <p className="stat-label">Total Users</p>
+          <div className="stat-main">
+            <div className="stat-icon">👥</div>
+            <h3 className="stat-number" data-target={stats.totalUsers}>0</h3>
           </div>
+          <span className="stat-change positive">+8% from last month</span>
         </div>
       </div>
 
-      {/* Today's Stats */}
-      <div className="today-stats dashboard-section">
+      {/* Today's Performance - Compact Row */}
+      <div className="today-stats">
         <h2 className="section-title">📅 Today's Performance</h2>
-        <div className="today-grid">
-          <div className="today-card">
-            <div className="today-icon">🛒</div>
-            <div className="today-info">
+        <div className="today-row">
+          <div className="today-item">
+            <span className="today-icon">🛒</span>
+            <div>
               <h4>{stats.todayOrders}</h4>
               <p>Orders Today</p>
             </div>
           </div>
-          <div className="today-card">
-            <div className="today-icon">💵</div>
-            <div className="today-info">
+          <div className="today-item">
+            <span className="today-icon">💵</span>
+            <div>
               <h4>₹{stats.todayRevenue.toLocaleString()}</h4>
               <p>Revenue Today</p>
             </div>
           </div>
-          <div className="today-card">
-            <div className="today-icon">⭐</div>
-            <div className="today-info">
+          <div className="today-item">
+            <span className="today-icon">⭐</span>
+            <div>
               <h4>4.8</h4>
               <p>Avg Rating</p>
             </div>
           </div>
-          <div className="today-card">
-            <div className="today-icon">⚡</div>
-            <div className="today-info">
+          <div className="today-item">
+            <span className="today-icon">⚡</span>
+            <div>
               <h4>28 min</h4>
               <p>Avg Delivery</p>
             </div>
@@ -179,7 +163,7 @@ export default function Dashboard() {
       {/* Two Column Layout */}
       <div className="dashboard-grid">
         {/* Recent Orders */}
-        <div className="dashboard-section recent-orders-section">
+        <div className="dashboard-section">
           <div className="section-header">
             <h2 className="section-title">📦 Recent Orders</h2>
             <Link to="/orders" className="view-all-link">View All →</Link>
@@ -188,14 +172,14 @@ export default function Dashboard() {
             {RECENT_ORDERS.map((order) => (
               <div key={order.id} className="order-item">
                 <div className="order-left">
-                  <div className="order-id">{order.id}</div>
+                  <span className="order-id">{order.id}</span>
                   <div className="order-customer">
                     <span className="customer-name">{order.customer}</span>
                     <span className="order-time">{order.time}</span>
                   </div>
                 </div>
                 <div className="order-right">
-                  <div className="order-amount">₹{order.amount}</div>
+                  <span className="order-amount">₹{order.amount}</span>
                   <span className={`status-badge status-${order.status}`}>
                     {order.status}
                   </span>
@@ -206,7 +190,7 @@ export default function Dashboard() {
         </div>
 
         {/* Top Selling Items */}
-        <div className="dashboard-section top-items-section">
+        <div className="dashboard-section">
           <div className="section-header">
             <h2 className="section-title">🔥 Top Selling Items</h2>
             <Link to="/menu" className="view-all-link">View Menu →</Link>
@@ -214,42 +198,38 @@ export default function Dashboard() {
           <div className="top-items-list">
             {TOP_ITEMS.map((item, index) => (
               <div key={index} className="top-item">
-                <div className="item-rank">#{index + 1}</div>
+                <span className="item-rank">#{index + 1}</span>
                 <div className="item-details">
                   <h4 className="item-name">{item.name}</h4>
                   <p className="item-stats">{item.orders} orders • ₹{item.revenue.toLocaleString()}</p>
                 </div>
-                <div className="item-trend positive">{item.trend}</div>
+                <span className="item-trend positive">{item.trend}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="dashboard-section quick-actions">
+      {/* Quick Actions - Compact */}
+      <div className="quick-actions">
         <h2 className="section-title">⚡ Quick Actions</h2>
-        <div className="actions-grid">
-          <Link to="/orders" className="action-card">
-            <div className="action-icon">📦</div>
-            <h4>View Orders</h4>
-            <p>Manage pending orders</p>
+        <div className="actions-row">
+          <Link to="/orders" className="action-btn">
+            <span className="action-icon">📦</span>
+            <span>Orders</span>
           </Link>
-          <Link to="/menu" className="action-card">
-            <div className="action-icon">🍔</div>
-            <h4>Add Menu Item</h4>
-            <p>Update your menu</p>
+          <Link to="/menu/add" className="action-btn">
+            <span className="action-icon">🍔</span>
+            <span>Add Item</span>
           </Link>
-          <button className="action-card">
-            <div className="action-icon">📊</div>
-            <h4>View Reports</h4>
-            <p>Analytics & insights</p>
-          </button>
-          <button className="action-card">
-            <div className="action-icon">⚙️</div>
-            <h4>Settings</h4>
-            <p>Configure your panel</p>
-          </button>
+          <Link to="/menu" className="action-btn">
+            <span className="action-icon">📋</span>
+            <span>Menu</span>
+          </Link>
+          <Link to="/settings" className="action-btn">
+            <span className="action-icon">⚙️</span>
+            <span>Settings</span>
+          </Link>
         </div>
       </div>
     </div>

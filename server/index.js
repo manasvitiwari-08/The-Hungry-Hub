@@ -66,6 +66,7 @@ app.use('/api/menu', require('./routes/menu'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/wishlist', require('./routes/wishlist'));
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Global error handler
 app.use((err, req, res, next) => {

@@ -50,16 +50,17 @@ export default function Login() {
         throw new Error(data.message || "Login failed");
       }
 
-      // Check if user is admin
-      if (data.user.role !== "admin") {
+      // Check if user is admin or super_admin
+      if (data.user.role !== "admin" && data.user.role !== "super_admin") {
         toast.error("Access denied. Admins only!");
         setLoading(false);
         return;
       }
 
-      // Save token and user info
+      // Save token, user info, and role
       localStorage.setItem("adminToken", data.token);
       localStorage.setItem("adminUser", JSON.stringify(data.user));
+      localStorage.setItem("adminRole", data.user.role);
       
       console.log("Login successful:", data.user);
       console.log("Token saved:", data.token);
@@ -76,17 +77,12 @@ export default function Login() {
 
   return (
     <div className="auth-wrapper">
-      {/* Left Side — Branding & Ads */}
+      {/* Left Side — Branding */}
       <AuthLeft />
 
       {/* Right Side — Login Form */}
       <div className="auth-right" ref={formRef}>
         <div className="auth-form-box">
-          <div className="auth-logo">
-            <span className="logo-icon">🍔</span>
-            <span className="logo-text">The Hungry Hub</span>
-          </div>
-
           <h2 className="auth-title">Admin Login</h2>
           <p className="auth-subtitle">Sign in to access the control panel</p>
 
@@ -94,7 +90,6 @@ export default function Login() {
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <div className="input-wrapper">
-                <span className="input-icon">✉️</span>
                 <input
                   type="email"
                   id="email"
@@ -110,7 +105,6 @@ export default function Login() {
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <div className="input-wrapper">
-                <span className="input-icon">🔒</span>
                 <input
                   type={showPass ? "text" : "password"}
                   id="password"
@@ -144,8 +138,16 @@ export default function Login() {
 
           <div className="demo-credentials">
             <p className="demo-label">Demo Credentials:</p>
-            <p className="demo-text"><strong>Email:</strong> admin@hungry.com</p>
-            <p className="demo-text"><strong>Password:</strong> admin123</p>
+            <div style={{ marginBottom: '0.8rem' }}>
+              <p className="demo-text"><strong>Super Admin:</strong></p>
+              <p className="demo-text">Email: superadmin@hungry.com</p>
+              <p className="demo-text">Password: super123</p>
+            </div>
+            <div>
+              <p className="demo-text"><strong>Admin:</strong></p>
+              <p className="demo-text">Email: admin@hungry.com</p>
+              <p className="demo-text">Password: admin123</p>
+            </div>
           </div>
         </div>
       </div>

@@ -133,6 +133,31 @@
 - Delivery settings
 - Payment configuration
 
+### 🔐 Super Admin Features
+
+#### Role-Based Access Control
+- **Two Admin Levels**:
+  - **Admin** - Menu and order management only
+  - **Super Admin** - Full system access
+- **Same Login Page** - Role detected automatically
+- **Dynamic Menu** - Features shown based on role
+
+#### Admin Management (Super Admin Only)
+- **View All Admins** - List of all admin users
+- **Create Admins** - Add new admin or super admin users
+- **Edit Admins** - Update admin details and roles
+- **Delete Admins** - Remove admin users (cannot delete super admins)
+- **Statistics** - Total admins, super admins, and users
+- **Role Indicator** - Shows user role in sidebar
+
+#### Demo Credentials
+- **Super Admin**:
+  - Email: `superadmin@hungry.com`
+  - Password: `super123`
+- **Admin**:
+  - Email: `admin@hungry.com`
+  - Password: `admin123`
+
 ---
 
 ## 🛠️ Tech Stack
